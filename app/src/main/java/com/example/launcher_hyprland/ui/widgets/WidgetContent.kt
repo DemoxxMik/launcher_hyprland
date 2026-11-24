@@ -2,6 +2,9 @@ package com.example.launcher_hyprland.ui.widgets
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.text.TextAutoSize
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -91,7 +94,12 @@ fun TileLabel(text: String) {
     }
 }
 
-/** Texte maison : impose la police monospace partout. Coupe avec « … » au-delà de [maxLines]. */
+/**
+ * Texte maison : impose la police monospace partout. Coupe avec « … » au-delà de [maxLines].
+ * Si [autoSize] est donné (min à max), la taille s'adapte à l'espace de la case et [size] est ignoré.
+ * Le texte doit avoir une largeur bornée (ex. [modifier] = fillMaxWidth).
+ */
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun MonoText(
     text: String,
@@ -99,14 +107,31 @@ fun MonoText(
     size: TextUnit = LauncherStyle.textBody,
     maxLines: Int = Int.MAX_VALUE,
     weight: FontWeight? = null,
+    modifier: Modifier = Modifier,
+    autoSize: Pair<TextUnit, TextUnit>? = null,
 ) {
-    Text(
-        text = text,
-        color = color,
-        fontSize = size,
-        fontWeight = weight,
-        fontFamily = LauncherStyle.font,
-        maxLines = maxLines,
-        overflow = TextOverflow.Ellipsis,
-    )
+    if (autoSize == null) {
+        Text(
+            text = text,
+            color = color,
+            fontSize = size,
+            fontWeight = weight,
+            fontFamily = LauncherStyle.font,
+            maxLines = maxLines,
+            overflow = TextOverflow.Ellipsis,
+            modifier = modifier,
+        )
+    } else {
+        BasicText(
+            text = text,
+            modifier = modifier,
+            style = TextStyle(color = color, fontWeight = weight, fontFamily = LauncherStyle.font),
+            maxLines = maxLines,
+            overflow = TextOverflow.Ellipsis,
+            autoSize = TextAutoSize.StepBased(
+                minFontSize = autoSize.first,
+                maxFontSize = autoSize.second,
+            ),
+        )
+    }
 }

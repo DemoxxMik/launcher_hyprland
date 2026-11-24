@@ -26,7 +26,8 @@ Symptôme constaté : après un changement de fond d'écran, cases noires légè
 - Ce widget affiche, pour chacun des 8 rôles de `LauncherColors` : une pastille de la couleur + son code hex ; et, via `WallpaperManager.getWallpaperColors(FLAG_SYSTEM)`, les couleurs primaire/secondaire/tertiaire du fond (hex).
 - Livrer, puis **demander à l'utilisateur** de poser ce widget sur le Pixel et de communiquer ce qu'il affiche avant de passer à 8.3.
 
-## 8.3 Correction des couleurs (selon le diagnostic)
+## 8.3 Correction des couleurs (selon le diagnostic) : ABANDONNÉE
+Décision du 2026-11-24 : le bug venait des réglages du téléphone, il est résolu. Le launcher suit maintenant la palette Material You (`system_*`), plus besoin de la calculer dans le code. Ne pas faire cette étape ; l'ancien contenu est gardé ci-dessous pour mémoire.
 - Cause 1 (palette trop neutre) : calculer la palette dans le code à partir de `WallpaperColors` (couleur dominante), avec la bibliothèque officielle de couleurs Material (`com.google.android.material:material-color-utilities` ou équivalent à jour), en gardant les mêmes 8 rôles et les mêmes tons que `DESIGN.md` (tile ton 10 ≈ ×0,90 d'opacité, border, text, muted, accent ton 80, accent2 tertiaire ton 80, field, onAccent). Paramètre d'intensité de la teinte des fonds. Les `system_*` restent le secours.
 - Cause 3 : la recomposition via `refreshKey` existe déjà ; relire les couleurs depuis `WallpaperColors` fournit alors la mise à jour immédiate.
 - Cause 2 : documenter, ne rien coder.
@@ -48,5 +49,28 @@ Décision : écran de réglages **dans l'app** (pas d'application tierce : deux 
 3. Réglages à fournir, dans cet ordre : cases sombres/claires ; coins 4/8/14 dp ; échelle de taille de police ; ombre pleine décalée de 3 dp (rectangle derrière la case, couleur foncée de la palette) ; icônes monochromes/silhouette/sans ; contraste (doux/normal/contrasté) et intensité de la teinte.
 4. **Flou : à ne pas faire dans cette étape.** Android ne permet pas de lire le fond d'écran derrière une case sans contournement ; le flou de toute la fenêtre (`setBackgroundBlurRadius`) floute tout l'écran. À évaluer plus tard, séparément.
 
+## 8.7 Widget « thème » : choisir la palette Material You en direct
+Contexte : sur un même fond d'écran, Material You propose plusieurs palettes (style + couleur de départ) et la meilleure n'est pas toujours celle choisie par défaut. On veut les changer depuis un widget du launcher, sans passer par les paramètres du téléphone.
+
+Ce qui a été **vérifié par adb** (2026-11-24, Pixel 9a, Android 17) :
+- Le choix est stocké dans `Settings.Secure` `theme_customization_overlay_packages`, un JSON : `_applied_timestamp`, `android.theme.customization.color_index`, `.color_both`, `.system_palette` (hex de la couleur de départ), `.color_source` (`home_wallpaper`), `.theme_style` (`TONAL_SPOT`, `VIBRANT`, `EXPRESSIVE`, `SPRITZ`, `RAINBOW`, `FRUIT_SALAD`).
+- Réécrire ce JSON avec un autre `theme_style` **et un nouveau `_applied_timestamp`** (millisecondes) fait régénérer les overlays par SystemUI en 1 à 2 s. Sans le nouveau timestamp, rien ne se passe. Le style change `accent2`, `accent3` et les neutres, pas `accent1` (qui dépend de la couleur de départ).
+- **Pas vérifié** : l'effet de `color_index` et de `system_palette` sur le système. À tester par adb avant de coder cette partie ; si `color_index` ne suffit pas, passer par `system_palette`.
+
+Prérequis (une fois, à demander à l'utilisateur de le faire ou à lancer avec son accord) :
+`adb shell pm grant com.example.launcher_hyprland android.permission.WRITE_SECURE_SETTINGS`
+Déclarer aussi la permission dans le manifeste. Sans elle, le widget s'affiche mais n'écrit rien : prévoir un message clair (« permission manquante » + la commande).
+
+À faire, dans l'ordre :
+1. `data/ThemeSettings.kt` : lire/écrire le réglage avec `org.json.JSONObject` (jamais de JSON assemblé à la main : un guillemet perdu rend le réglage invalide). Garder les clés inconnues telles quelles. À chaque écriture, mettre `_applied_timestamp` à l'heure actuelle en ms. Sauvegarder la valeur d'origine pour pouvoir « revenir au réglage de départ ».
+2. Ajouter un `WidgetType` `THEME` (en fin d'enum, on ajoute, on ne renomme jamais) avec sa branche dans `WidgetContent`, son libellé (`label()`) et son entrée dans `WidgetPicker`. (Seconde exception à l'interdiction de toucher `WidgetType`, comme `PALETTE`.)
+3. Widget `ui/widgets/ThemeWidget.kt` : une rangée de pastilles pour les 6 styles (la courante en accent) ; les choix de couleur de départ issus du fond (`WallpaperColors` primaire/secondaire/tertiaire, ou `color_index`) en pastilles de leur couleur ; appui = applique tout de suite. Style des cases du reste de l'app, `MonoText` / `TileLabel`, jetons `LauncherTheme.colors`, aucune couleur en dur hors `LauncherStyle`/`LauncherColors`.
+4. Bouton « fond d'écran » : ouvre le sélecteur de photos du système (`ActivityResultContracts.PickVisualMedia`), puis `WallpaperManager.setStream(...)` (permission `SET_WALLPAPER`, normale). Le système recalcule alors la palette tout seul.
+5. Si la permission manque ou si l'écriture échoue (JSON absent, exception) : ne rien casser, afficher un message, ne pas planter.
+
+Règles propres à cette étape :
+- Ne jamais écrire le réglage par le shell avec `settings put` à la main sans sauvegarde : un guillemet perdu l'a déjà invalidé une fois (restauré depuis la sauvegarde).
+- Après le widget, vérifier sur l'appareil branché par adb : changer le style depuis le widget, relire le réglage et les overlays (`adb shell cmd overlay dump com.android.systemui:accent`), puis remettre le style d'origine.
+
 ## Résumé attendu en fin d'étape
-`docs/8-resume.md` : fichiers touchés avec une ligne de justification, échecs éventuels, et « à vérifier sur le Pixel » : police, palette après changement de fond (avec le widget de diagnostic), taille du texte au redimensionnement, icônes du lanceur, chaque réglage de l'écran de réglages.
+`docs/8-resume.md` : fichiers touchés avec une ligne de justification, échecs éventuels, et « à vérifier sur le Pixel » : police, palette après changement de fond (avec le widget de diagnostic), taille du texte au redimensionnement, icônes du lanceur, chaque réglage de l'écran de réglages, et le widget « thème » (changement de style, choix de couleur de départ, changement de fond d'écran, message si la permission manque).

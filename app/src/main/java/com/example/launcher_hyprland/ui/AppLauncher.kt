@@ -151,15 +151,21 @@ private fun AppRow(match: AppMatch, selected: Boolean, onClick: () -> Unit) {
             .clip(rowShape)
             .then(if (selected) Modifier.background(colors.field, rowShape) else Modifier)
             .clickable(onClick = onClick)
-            .padding(horizontal = 9.dp, vertical = 8.dp),
+            .padding(horizontal = 9.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         val glyph = match.app.glyph
-        Box(Modifier.size(20.dp), contentAlignment = Alignment.Center) {
+        Box(Modifier.size(28.dp), contentAlignment = Alignment.Center) {
             if (glyph != null) {
-                Image(glyph, contentDescription = null, colorFilter = ColorFilter.tint(colors.accent), modifier = Modifier.size(20.dp))
+                Image(
+                    glyph,
+                    contentDescription = null,
+                    // aplat plein : on garde les couleurs d'origine plutôt qu'un carré teinté
+                    colorFilter = if (match.app.tinted) ColorFilter.tint(colors.accent) else null,
+                    modifier = Modifier.size(28.dp),
+                )
             } else {
-                // pas d'icône monochrome : l'initiale, dans la même couleur
+                // aucune icône lisible : l'initiale, dans la même couleur
                 MonoText(
                     match.app.label.take(1).lowercase(),
                     color = colors.accent,

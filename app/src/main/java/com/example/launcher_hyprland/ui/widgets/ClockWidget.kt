@@ -3,6 +3,8 @@ package com.example.launcher_hyprland.ui.widgets
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.ui.unit.sp
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -42,14 +44,21 @@ private fun ClockContent(now: LocalDateTime) {
         verticalArrangement = Arrangement.SpaceBetween,
     ) {
         TileLabel("horloge")
-        Column {
+        Column(Modifier.fillMaxWidth()) {
             MonoText(
                 now.format(timeFormat),
-                size = LauncherStyle.textHuge,
                 weight = LauncherStyle.weightHuge,
                 maxLines = 1,
+                modifier = Modifier.fillMaxWidth(),
+                autoSize = LauncherStyle.textHuge to 120.sp,
             )
-            MonoText(now.format(dateFormat), color = LauncherTheme.colors.muted, maxLines = 1)
+            MonoText(
+                now.format(dateFormat),
+                color = LauncherTheme.colors.muted,
+                maxLines = 1,
+                modifier = Modifier.fillMaxWidth(),
+                autoSize = LauncherStyle.textBody to 28.sp,
+            )
         }
     }
 }

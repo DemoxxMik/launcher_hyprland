@@ -3,6 +3,8 @@ package com.example.launcher_hyprland.ui.widgets
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.ui.unit.sp
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -41,14 +43,22 @@ private fun BatteryContent(state: BatteryState?) {
         verticalArrangement = Arrangement.spacedBy(LauncherStyle.lineSpacing, Alignment.CenterVertically),
     ) {
         if (state == null) {
-            MonoText("--%", size = LauncherStyle.textHuge, weight = LauncherStyle.weightHuge, maxLines = 1)
+            MonoText("--%", weight = LauncherStyle.weightHuge, maxLines = 1, modifier = Modifier.fillMaxWidth(), autoSize = LauncherStyle.textHuge to 120.sp)
             return@Column
         }
-        MonoText("${state.percent}%", size = LauncherStyle.textHuge, weight = LauncherStyle.weightHuge, maxLines = 1)
+        MonoText(
+            "${state.percent}%",
+            weight = LauncherStyle.weightHuge,
+            maxLines = 1,
+            modifier = Modifier.fillMaxWidth(),
+            autoSize = LauncherStyle.textHuge to 120.sp,
+        )
         MonoText(
             bar(state.percent),
             color = if (state.charging) LauncherTheme.colors.accent2 else LauncherTheme.colors.text,
             maxLines = 1,
+            modifier = Modifier.fillMaxWidth(),
+            autoSize = LauncherStyle.textBody to 40.sp,
         )
         MonoText(
             text = when {
