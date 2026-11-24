@@ -2,7 +2,7 @@ package com.example.launcher_hyprland.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.padding
@@ -13,19 +13,20 @@ import androidx.compose.ui.draw.clip
 
 /**
  * Une case réutilisable : fond sombre arrondi, contour (accent si [active]) et contenu libre.
- * C'est la brique que le tiling de l'étape 4 placera dans chaque feuille de l'arbre.
+ * [onClick] = toucher court, [onLongClick] = appui long.
  */
 @Composable
 fun Tile(
     active: Boolean,
     onClick: () -> Unit,
+    onLongClick: () -> Unit,
     modifier: Modifier = Modifier,
     content: @Composable BoxScope.() -> Unit,
 ) {
     val shape = RoundedCornerShape(LauncherStyle.cornerRadius)
     Box(
         // On part du modifier reçu (taille décidée par l'appelant), puis l'ordre compte :
-        // clip → background → border → clickable → padding intérieur.
+        // clip → background → border → combinedClickable → padding intérieur.
         modifier = modifier
             .clip(shape)
             .background(LauncherStyle.tileBackground, shape)
@@ -34,7 +35,7 @@ fun Tile(
                 color = if (active) LauncherStyle.borderActive else LauncherStyle.borderInactive,
                 shape = shape,
             )
-            .clickable(onClick = onClick)
+            .combinedClickable(onClick = onClick, onLongClick = onLongClick)
             .padding(LauncherStyle.tilePadding),
         content = content,
     )
