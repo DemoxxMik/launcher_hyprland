@@ -50,6 +50,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.example.launcher_hyprland.data.AppEntry
 import com.example.launcher_hyprland.data.AppsSource
+import com.example.launcher_hyprland.data.IconMode
 import com.example.launcher_hyprland.ui.widgets.MonoText
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -93,6 +94,7 @@ fun AppLauncher(onClose: () -> Unit, modifier: Modifier = Modifier) {
         modifier = modifier
             .fillMaxSize()
             .imePadding()
+            .tileShadow(shape, LauncherTheme.shadow)
             .clip(shape)
             .background(colors.tile, shape)
             .border(LauncherStyle.borderWidth, colors.border, shape)
@@ -154,8 +156,14 @@ private fun AppRow(match: AppMatch, selected: Boolean, onClick: () -> Unit) {
             .padding(horizontal = 9.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        val glyph = match.app.glyph
-        Box(Modifier.size(28.dp), contentAlignment = Alignment.Center) {
+        // Réglage « icônes » : sans = texte seul ; mono = seulement les couches monochromes (sinon l'initiale)
+        val mode = LauncherTheme.settings.icons
+        val glyph = when (mode) {
+            IconMode.NONE -> null
+            IconMode.MONOCHROME -> match.app.glyph.takeIf { match.app.monochrome }
+            IconMode.SILHOUETTE -> match.app.glyph
+        }
+        if (mode != IconMode.NONE) Box(Modifier.size(28.dp), contentAlignment = Alignment.Center) {
             if (glyph != null) {
                 Image(
                     glyph,
@@ -174,7 +182,7 @@ private fun AppRow(match: AppMatch, selected: Boolean, onClick: () -> Unit) {
                 )
             }
         }
-        Spacer(Modifier.width(10.dp))
+        if (mode != IconMode.NONE) Spacer(Modifier.width(10.dp))
         androidx.compose.material3.Text(
             text = highlighted(match.app.label, match.hits, colors.accent),
             color = if (selected) colors.text else colors.muted,

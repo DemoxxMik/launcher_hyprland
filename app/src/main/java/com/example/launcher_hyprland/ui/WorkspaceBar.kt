@@ -2,7 +2,7 @@ package com.example.launcher_hyprland.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -20,6 +20,7 @@ import com.example.launcher_hyprland.ui.widgets.MonoText
 /**
  * Barre des espaces de travail : une case fine pleine largeur, une pastille par espace.
  * Active = remplie d'accent et plus large ; les autres = texte atténué. Toucher une pastille = [onSelect].
+ * Appui long n'importe où sur la barre = [onLongPress] (ouvre les réglages).
  */
 @Composable
 fun WorkspaceBar(
@@ -28,15 +29,18 @@ fun WorkspaceBar(
     enabled: Boolean,
     onSelect: (Int) -> Unit,
     modifier: Modifier = Modifier,
+    onLongPress: () -> Unit = {},
 ) {
     val colors = LauncherTheme.colors
     val shape = RoundedCornerShape(LauncherStyle.cornerRadius)
     Row(
         modifier = modifier
             .fillMaxWidth()
+            .tileShadow(shape, LauncherTheme.shadow)
             .clip(shape)
             .background(colors.tile, shape)
             .border(LauncherStyle.borderWidth, colors.border, shape)
+            .combinedClickable(enabled = enabled, onClick = {}, onLongClick = onLongPress)
             .padding(6.dp),
         horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterHorizontally),
         verticalAlignment = Alignment.CenterVertically,
@@ -48,7 +52,7 @@ fun WorkspaceBar(
                     .defaultMinSize(minWidth = if (on) 34.dp else 18.dp)
                     .clip(RoundedCornerShape(percent = 50))
                     .then(if (on) Modifier.background(colors.accent) else Modifier)
-                    .clickable(enabled = enabled) { onSelect(i) }
+                    .combinedClickable(enabled = enabled, onClick = { onSelect(i) }, onLongClick = onLongPress)
                     .padding(horizontal = 6.dp, vertical = 4.dp),
                 contentAlignment = Alignment.Center,
             ) {

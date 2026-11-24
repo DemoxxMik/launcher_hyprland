@@ -15,7 +15,8 @@ import java.io.IOException
 
 // Un seul DataStore pour toute l'app (fichier "launcher_prefs" dans le stockage privé de l'app).
 // Le `by preferencesDataStore` garantit qu'il n'est créé qu'une fois, comme un singleton.
-private val Context.launcherDataStore: DataStore<Preferences> by preferencesDataStore(name = "launcher_prefs")
+// `internal` : SettingsStore (réglages) écrit dans le même fichier, sous sa propre clé.
+internal val Context.launcherDataStore: DataStore<Preferences> by preferencesDataStore(name = "launcher_prefs")
 
 /** Nombre d'espaces de travail. */
 const val WORKSPACE_COUNT = 4

@@ -76,6 +76,7 @@ fun HomeScreen(initialEditMode: Boolean = false) {
     var pickerOpen by remember { mutableStateOf(false) }      // la liste des widgets remplace l'EditBar
     var openNoteId by remember { mutableStateOf<Int?>(null) } // case dont on édite la note, ou null
     var launcherOpen by remember { mutableStateOf(false) }    // le lanceur d'apps recouvre l'accueil
+    var settingsOpen by remember { mutableStateOf(false) }    // l'écran « réglages » remplace la disposition
 
     // L'espace affiché, lu à l'appel (jamais une valeur gardée d'avant) : le balayage est coupé en mode édition.
     fun curTree(): TileNode = trees[pagerState.currentPage]
@@ -207,9 +208,16 @@ fun HomeScreen(initialEditMode: Boolean = false) {
         return
     }
 
+    // Réglages : même principe (son BackHandler passe devant ; on revient là où on était, édition comprise).
+    if (settingsOpen) {
+        SettingsScreen(onClose = { settingsOpen = false })
+        return
+    }
+
     val shownPage = pagerState.currentPage
     val shownTree = trees[shownPage]
     val openThresholdPx = with(LocalDensity.current) { 80.dp.toPx() }
+    val shadowRoom = if (LauncherTheme.shadow != null) LauncherStyle.shadowOffset else 0.dp
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -250,7 +258,10 @@ fun HomeScreen(initialEditMode: Boolean = false) {
                 },
                 // On applique le delta à l'arbre ACTUEL (jamais à un vieux ratio gardé par la poignée).
                 onResize = { splitId, delta -> setTree(resize(curTree(), splitId, delta)) },
-                modifier = Modifier.fillMaxSize(),
+                // Ombre décalée : le pager coupe ce qui dépasse de la page, on laisse donc sa place à droite et en bas.
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(end = shadowRoom, bottom = shadowRoom),
             )
         }
         if (editMode && pickerOpen) {
@@ -277,6 +288,10 @@ fun HomeScreen(initialEditMode: Boolean = false) {
                     swapFromId = null
                     pickerOpen = true
                 },
+                onSettings = {
+                    swapFromId = null
+                    settingsOpen = true
+                },
                 onOk = { exitEditMode() },
             )
         }
@@ -286,6 +301,7 @@ fun HomeScreen(initialEditMode: Boolean = false) {
             current = shownPage,
             enabled = !editMode,
             onSelect = { page -> scope.launch { pagerState.animateScrollToPage(page) } },
+            onLongPress = { settingsOpen = true },
         )
     }
     if (launcherOpen && !editMode) AppLauncher(onClose = { launcherOpen = false })

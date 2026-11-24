@@ -1,6 +1,9 @@
 package com.example.launcher_hyprland.ui
 
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -13,7 +16,9 @@ object LauncherStyle {
     // Dimensions
     val gap = 10.dp            // écart entre les cases et avec les bords de l'écran
     val editGap = 24.dp        // écart en mode édition : assez large pour attraper la poignée au doigt
-    val cornerRadius = 8.dp   // rayon des coins d'une case
+    /** Rayon des coins d'une case : un réglage (LauncherSettings.cornerRadius), lu dans la composition. */
+    val cornerRadius: Dp
+        @Composable @ReadOnlyComposable get() = LocalLauncherSettings.current.cornerRadius.dp
     val borderWidth = 1.dp     // épaisseur du contour
     val tilePadding = 12.dp    // marge intérieure d'une case
     val handleLength = 32.dp   // longueur du petit trait visible au milieu d'une poignée
@@ -58,8 +63,11 @@ object LauncherStyle {
     val weekBlockCorner = 3.dp
     val weekBlockPadding = 2.dp
 
-    // Cases claires (option) : false = sombres, le defaut
-    var lightTiles: Boolean = false
+    // Réglages (écran « réglages ») : les choix proposés. Les valeurs choisies vivent dans LauncherSettings.
+    val cornerChoices = listOf(4, 8, 14)              // dp
+    val fontScaleChoices = listOf(0.9f, 1f, 1.1f, 1.25f)
+    val tintChoices = listOf(0f, 0.2f, 0.4f, 0.6f)    // part de l'accent mêlée au fond des cases (réglage 0 à 3)
+    val shadowOffset = 3.dp                           // ombre pleine décalée (vers la droite et le bas)
 
     // Secours de LauncherColors (apercu Android Studio uniquement) : seul endroit ou ces valeurs servent
     val fallbackTile = Color(0xE61E1E2E)
@@ -70,6 +78,7 @@ object LauncherStyle {
     val fallbackAccent2 = Color(0xFFFAB387)
     val fallbackField = Color(0xFF313244)
     val fallbackOnAccent = Color(0xFF1E1E2E)
+    val fallbackShadow = Color(0xCC11111B)
 
     // Police : JetBrains Mono embarquée (res/font/, licence OFL dans docs/OFL.txt), 3 graisses
     val font = FontFamily(

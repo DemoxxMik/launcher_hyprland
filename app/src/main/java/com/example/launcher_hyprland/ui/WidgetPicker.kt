@@ -42,6 +42,7 @@ fun WidgetPicker(
     Column(
         modifier = modifier
             .fillMaxWidth()
+            .tileShadow(shape, LauncherTheme.shadow)
             .clip(shape)
             .background(colors.tile, shape)
             .border(LauncherStyle.borderWidth, colors.border, shape)

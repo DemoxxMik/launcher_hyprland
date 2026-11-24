@@ -12,7 +12,11 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.lifecycleScope
+import com.example.launcher_hyprland.data.SettingsStore
 import com.example.launcher_hyprland.ui.HomeScreen
+import kotlinx.coroutines.launch
 import com.example.launcher_hyprland.ui.LauncherTheme
 
 class MainActivity : ComponentActivity() {
@@ -27,10 +31,21 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         WallpaperManager.getInstance(this).addOnColorsChangedListener(wallpaperListener, Handler(Looper.getMainLooper()))
+        val settingsStore = SettingsStore(applicationContext)
         setContent {
             BackHandler { /* sur l'accueil, retour ne fait rien */ }
-            LauncherTheme(refreshKey = paletteVersion) {
-                HomeScreen()
+            // null tant que les réglages ne sont pas relus (quelques ms) : on n'affiche rien plutôt que les défauts
+            val settings by settingsStore.settings.collectAsStateWithLifecycle(initialValue = null)
+            val current = settings
+            if (current != null) {
+                LauncherTheme(
+                    refreshKey = paletteVersion,
+                    settings = current,
+                    // l'écriture réémet les réglages par le Flow : c'est ce qui redessine l'app
+                    onSettingsChange = { new -> lifecycleScope.launch { settingsStore.save(new) } },
+                ) {
+                    HomeScreen()
+                }
             }
         }
     }

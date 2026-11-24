@@ -4,7 +4,11 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -32,6 +36,7 @@ fun EditBar(
     onClose: () -> Unit,
     onSwap: () -> Unit,
     onWidget: () -> Unit,
+    onSettings: () -> Unit,
     onOk: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -40,6 +45,7 @@ fun EditBar(
     Column(
         modifier = modifier
             .fillMaxWidth()
+            .tileShadow(shape, LauncherTheme.shadow)
             .clip(shape)
             .background(colors.tile, shape)
             .border(LauncherStyle.borderWidth, colors.border, shape)
@@ -51,17 +57,24 @@ fun EditBar(
                 MonoText("swap : touche une case", color = colors.accent2, size = LauncherStyle.textSmall)
             }
         }
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            BarButton("split |", onClick = onSplitRow)
-            BarButton("split —", onClick = onSplitColumn)
-            BarButton("close", enabled = canClose, onClick = onClose)
-            BarButton("swap", enabled = canSwap, highlighted = swapPending, onClick = onSwap)
-            BarButton("widget", onClick = onWidget)
-            BarButton("ok", onClick = onOk)
+        // 7 boutons : ils tiennent sur une ligne en taille de texte normale ; avec une police agrandie
+        // (réglage), la ligne défile horizontalement au lieu de couper le dernier bouton.
+        BoxWithConstraints(Modifier.fillMaxWidth()) {
+            Row(
+                modifier = Modifier
+                    .horizontalScroll(rememberScrollState())
+                    .widthIn(min = maxWidth),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                BarButton("split |", onClick = onSplitRow)
+                BarButton("split —", onClick = onSplitColumn)
+                BarButton("close", enabled = canClose, onClick = onClose)
+                BarButton("swap", enabled = canSwap, highlighted = swapPending, onClick = onSwap)
+                BarButton("widget", onClick = onWidget)
+                BarButton("réglages", onClick = onSettings)
+                BarButton("ok", onClick = onOk)
+            }
         }
     }
 }

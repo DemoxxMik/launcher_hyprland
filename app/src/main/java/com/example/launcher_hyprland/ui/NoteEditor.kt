@@ -77,6 +77,7 @@ fun NoteEditor(leafId: Int, onClose: () -> Unit) {
             .systemBarsPadding()
             .imePadding()
             .padding(LauncherStyle.gap)
+            .tileShadow(shape, LauncherTheme.shadow)
             .clip(shape)
             .background(colors.tile, shape)
             .border(LauncherStyle.borderWidth, colors.accent, shape)

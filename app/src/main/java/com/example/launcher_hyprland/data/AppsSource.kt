@@ -20,7 +20,12 @@ data class AppEntry(
     val glyph: ImageBitmap?,
     /** Faux : [glyph] est l'icône en couleurs d'origine (aucune silhouette exploitable), à afficher sans teinte. */
     val tinted: Boolean = true,
+    /** Vrai : [glyph] vient de la couche monochrome de l'icône (seule source gardée par le réglage « mono »). */
+    val monochrome: Boolean = false,
 )
+
+/** Résultat de la lecture d'une icône (voir [AppEntry]). */
+private data class Glyph(val bitmap: ImageBitmap?, val tinted: Boolean, val monochrome: Boolean)
 
 private const val GLYPH_PX = 96
 
@@ -37,12 +42,13 @@ class AppsSource(private val context: Context) {
         return pm.queryIntentActivities(query, PackageManager.ResolveInfoFlags.of(0))
             .map { info ->
                 val activity = info.activityInfo
-                val (glyph, tinted) = glyphOf(info.loadIcon(pm))
+                val glyph = glyphOf(info.loadIcon(pm))
                 AppEntry(
                     label = info.loadLabel(pm).toString(),
                     component = ComponentName(activity.packageName, activity.name),
-                    glyph = glyph,
-                    tinted = tinted,
+                    glyph = glyph.bitmap,
+                    tinted = glyph.tinted,
+                    monochrome = glyph.monochrome,
                 )
             }
             .sortedBy { it.label.lowercase() }
@@ -52,17 +58,20 @@ class AppsSource(private val context: Context) {
      * Silhouette de l'icône, teintée ensuite à l'affichage (seul le canal alpha compte). Par ordre de préférence :
      * couche monochrome (Android 13+), couche avant de l'icône adaptative, icône entière ; on prend la première
      * qui n'est pas un aplat. Si toutes en sont un : l'icône entière en couleurs, non teintée (tinted = false).
-     * Retourne (null, true) en dernier recours (l'initiale sera affichée).
+     * Retourne une silhouette nulle en dernier recours (l'initiale sera affichée).
      */
-    private fun glyphOf(icon: android.graphics.drawable.Drawable?): Pair<ImageBitmap?, Boolean> {
-        if (icon == null) return null to true
+    private fun glyphOf(icon: android.graphics.drawable.Drawable?): Glyph {
+        if (icon == null) return Glyph(null, tinted = true, monochrome = false)
         val adaptive = icon as? AdaptiveIconDrawable
-        val candidates = listOfNotNull(adaptive?.monochrome, adaptive?.foreground, icon)
+        val mono = adaptive?.monochrome
+        val candidates = listOfNotNull(mono, adaptive?.foreground, icon)
         var fallback: ImageBitmap? = null
         for (drawable in candidates) {
             try {
                 val bitmap = drawable.mutate().toBitmap(GLYPH_PX, GLYPH_PX)
-                if (opaqueRatio(bitmap) <= SOLID_RATIO) return bitmap.asImageBitmap() to true
+                if (opaqueRatio(bitmap) <= SOLID_RATIO) {
+                    return Glyph(bitmap.asImageBitmap(), tinted = true, monochrome = drawable === mono)
+                }
                 if (fallback == null) fallback = bitmap.asImageBitmap()
             } catch (_: RuntimeException) {
                 // essayer la couche suivante
@@ -74,7 +83,8 @@ class AppsSource(private val context: Context) {
         } catch (_: RuntimeException) {
             null
         }
-        return if (colored != null) colored to false else fallback to true
+        return if (colored != null) Glyph(colored, tinted = false, monochrome = false)
+        else Glyph(fallback, tinted = true, monochrome = false)
     }
 
     /** Part (0..1) des pixels non transparents. */
