@@ -65,6 +65,19 @@ object LauncherStyle {
     val weekBlockCorner = 3.dp
     val weekBlockPadding = 2.dp
 
+    // Cases claires (option) : false = sombres, le defaut
+    var lightTiles: Boolean = false
+
+    // Secours de LauncherColors (apercu Android Studio uniquement) : seul endroit ou ces valeurs servent
+    val fallbackTile = Color(0xE61E1E2E)
+    val fallbackBorder = Color(0xFF585B70)
+    val fallbackText = Color(0xFFCDD6F4)
+    val fallbackMuted = Color(0xFF7F849C)
+    val fallbackAccent = Color(0xFF89B4FA)
+    val fallbackAccent2 = Color(0xFFFAB387)
+    val fallbackField = Color(0xFF313244)
+    val fallbackOnAccent = Color(0xFF1E1E2E)
+
     // Police
     val font = FontFamily.Monospace
 
