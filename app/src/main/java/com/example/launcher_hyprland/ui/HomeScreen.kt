@@ -33,6 +33,7 @@ import com.example.launcher_hyprland.model.siblingOf
 import com.example.launcher_hyprland.model.splitLeaf
 import com.example.launcher_hyprland.model.swapLeaves
 import kotlinx.coroutines.delay
+import kotlin.time.Duration.Companion.milliseconds
 
 /** Écran d'accueil : possède tout l'état et le passe vers le bas. */
 @Composable
@@ -62,7 +63,7 @@ fun HomeScreen(initialEditMode: Boolean = false) {
     // la tâche en cours (le delay s'interrompt) et en relance une → seule la dernière écrit (debounce).
     LaunchedEffect(tree, loaded) {
         if (store == null || !loaded) return@LaunchedEffect
-        delay(500)
+        delay(500.milliseconds)
         store.save(tree)
     }
 
