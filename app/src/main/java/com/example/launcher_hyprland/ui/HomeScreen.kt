@@ -22,6 +22,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.example.launcher_hyprland.data.LayoutStore
 import com.example.launcher_hyprland.model.Direction
 import com.example.launcher_hyprland.model.TileNode
+import com.example.launcher_hyprland.model.WidgetType
 import com.example.launcher_hyprland.model.closeLeaf
 import com.example.launcher_hyprland.model.defaultTree
 import com.example.launcher_hyprland.model.findLeaf
@@ -45,6 +46,7 @@ fun HomeScreen(initialEditMode: Boolean = false) {
     var editMode by remember { mutableStateOf(initialEditMode) }
     var swapFromId by remember { mutableStateOf<Int?>(null) } // case de départ d'un échange, ou null
     var pickerOpen by remember { mutableStateOf(false) }      // la liste des widgets remplace l'EditBar
+    var openNoteId by remember { mutableStateOf<Int?>(null) } // case dont on édite la note, ou null
 
     // --- sauvegarde (pas dans l'aperçu d'Android Studio : il n'a pas de vrai stockage) ---
     val context = LocalContext.current
@@ -70,9 +72,19 @@ fun HomeScreen(initialEditMode: Boolean = false) {
     }
 
     // --- les callbacks, passés vers le bas ---
+    // 2e toucher sur la case déjà active (hors mode édition) : l'action du widget.
+    // Les widgets n'ont pas de zone cliquable à eux : tout toucher passe par la Tile.
+    fun onWidgetAction(id: Int) {
+        when (findLeaf(tree, id)?.widget) {
+            WidgetType.NOTES -> openNoteId = id
+            else -> Unit // les autres widgets n'ont pas (encore) d'action
+        }
+    }
+
     fun onTileClick(id: Int) {
         val from = swapFromId
         when {
+            from == null && id == activeId && !editMode -> onWidgetAction(id)
             from == null -> activeId = id                    // cas normal : on sélectionne
             id == from -> swapFromId = null                  // retoucher la case de départ : annule
             else -> {                                        // une autre case : on échange
@@ -120,6 +132,13 @@ fun HomeScreen(initialEditMode: Boolean = false) {
     // Tant que la sauvegarde n'est pas relue (quelques ms), on n'affiche rien : sinon on verrait
     // l'arbre par défaut clignoter avant d'être remplacé par le tien.
     if (!loaded) return
+
+    // Éditeur de note : il remplace toute la disposition (et son BackHandler passe devant celui d'au-dessus).
+    val noteId = openNoteId
+    if (noteId != null) {
+        NoteEditor(leafId = noteId, onClose = { openNoteId = null })
+        return
+    }
 
     Column(
         modifier = Modifier

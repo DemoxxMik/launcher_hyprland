@@ -13,13 +13,13 @@ import com.example.launcher_hyprland.ui.LauncherStyle
  * [leafId] et [active] servent aux widgets qui en ont besoin (ex. les notes : « quelle note est la mienne ? »).
  * Ajouter un widget = un nouveau fichier dans ce package + une ligne ici.
  */
-@Suppress("UNUSED_PARAMETER") // leafId et active serviront à partir de 5c
+@Suppress("UNUSED_PARAMETER") // `active` servira peut-être à un futur widget
 @Composable
 fun WidgetContent(type: WidgetType, leafId: Int, active: Boolean) {
     when (type) {
         WidgetType.CLOCK -> ClockWidget()
         WidgetType.BATTERY -> BatteryWidget()
-        WidgetType.NOTES -> NotesWidget()
+        WidgetType.NOTES -> NotesWidget(leafId)
         WidgetType.AGENDA -> AgendaWidget()
         WidgetType.EMPTY -> EmptyWidget()
     }
