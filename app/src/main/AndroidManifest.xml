@@ -5,6 +5,14 @@
     <!-- Lecture de l'agenda (permission « dangereuse » : demandée à l'exécution, voir l'étape 5d) -->
     <uses-permission android:name="android.permission.READ_CALENDAR" />
 
+    <!-- Android 11+ : sans ceci, queryIntentActivities ne voit pas les autres apps (lanceur d'apps) -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent>
+    </queries>
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"

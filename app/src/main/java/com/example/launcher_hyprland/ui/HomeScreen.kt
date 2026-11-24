@@ -13,6 +13,8 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
 import androidx.core.net.toUri
 import com.example.launcher_hyprland.ui.widgets.agenda.hasCalendarPermission
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -30,7 +32,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.launcher_hyprland.data.HOME_WORKSPACE
@@ -70,6 +75,7 @@ fun HomeScreen(initialEditMode: Boolean = false) {
     var swapFromId by remember { mutableStateOf<Int?>(null) } // case de départ d'un échange, ou null
     var pickerOpen by remember { mutableStateOf(false) }      // la liste des widgets remplace l'EditBar
     var openNoteId by remember { mutableStateOf<Int?>(null) } // case dont on édite la note, ou null
+    var launcherOpen by remember { mutableStateOf(false) }    // le lanceur d'apps recouvre l'accueil
 
     // L'espace affiché, lu à l'appel (jamais une valeur gardée d'avant) : le balayage est coupé en mode édition.
     fun curTree(): TileNode = trees[pagerState.currentPage]
@@ -203,18 +209,32 @@ fun HomeScreen(initialEditMode: Boolean = false) {
 
     val shownPage = pagerState.currentPage
     val shownTree = trees[shownPage]
-    Column(
+    val openThresholdPx = with(LocalDensity.current) { 80.dp.toPx() }
+    Box(
         modifier = Modifier
             .fillMaxSize()
             .systemBarsPadding()
             .padding(LauncherStyle.gap),
     ) {
+    Column(Modifier.fillMaxSize()) {
         HorizontalPager(
             state = pagerState,
             // Le balayage est coupé en mode édition : il entrerait en conflit avec les poignées.
             userScrollEnabled = !editMode,
             pageSpacing = LauncherStyle.gap,
-            modifier = Modifier.fillMaxWidth().weight(1f),
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f)
+                // Balayage vers le haut (hors mode édition) = ouvrir le lanceur d'apps
+                .pointerInput(editMode) {
+                    if (editMode) return@pointerInput
+                    var total = 0f
+                    detectVerticalDragGestures(
+                        onDragStart = { total = 0f },
+                        onDragEnd = { if (total < -openThresholdPx) launcherOpen = true },
+                        onVerticalDrag = { _, delta -> total += delta },
+                    )
+                },
         ) { page ->
             val current = page == shownPage
             TilingLayout(
@@ -267,6 +287,8 @@ fun HomeScreen(initialEditMode: Boolean = false) {
             enabled = !editMode,
             onSelect = { page -> scope.launch { pagerState.animateScrollToPage(page) } },
         )
+    }
+    if (launcherOpen && !editMode) AppLauncher(onClose = { launcherOpen = false })
     }
 }
 
