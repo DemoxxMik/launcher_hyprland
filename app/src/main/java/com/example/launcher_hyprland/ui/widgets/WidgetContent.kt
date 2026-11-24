@@ -46,6 +46,7 @@ fun WidgetContent(
         WidgetType.EMPTY -> EmptyWidget()
         WidgetType.CALENDAR -> CalendarPageWidget(interactive = interactive, onLongClick = onLongClick)
         WidgetType.PALETTE -> PaletteWidget()
+        WidgetType.THEME -> ThemeWidget(interactive = interactive, onLongClick = onLongClick)
     }
 }
 
@@ -72,6 +73,7 @@ fun WidgetType.label(): String = when (this) {
     WidgetType.EMPTY -> "vide"
     WidgetType.CALENDAR -> "calendrier"
     WidgetType.PALETTE -> "palette"
+    WidgetType.THEME -> "thème"
 }
 
 /**

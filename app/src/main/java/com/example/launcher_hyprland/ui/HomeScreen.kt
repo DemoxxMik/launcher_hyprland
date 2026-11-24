@@ -30,6 +30,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.listSaver
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
@@ -59,6 +61,9 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.milliseconds
 
+/** Sauvegarde des cases actives (une par espace) dans l'état de l'activité. */
+private val activeIdsSaver = listSaver<List<Int>, Int>(save = { it }, restore = { it })
+
 /**
  * Écran d'accueil : possède tout l'état et le passe vers le bas.
  * 4 espaces de travail (un arbre chacun) dans un pager ; les commandes d'édition agissent sur l'espace affiché.
@@ -67,8 +72,12 @@ import kotlin.time.Duration.Companion.milliseconds
 fun HomeScreen(initialEditMode: Boolean = false) {
     // L'état : chaque nouvelle valeur affectée → Compose redessine ce qui en dépend.
     var trees by remember { mutableStateOf<List<TileNode>>(defaultWorkspaces()) }
-    // Une case active par espace (2 = l'horloge dans l'espace 2, comme à l'étape 3)
-    var activeIds by remember { mutableStateOf(defaultWorkspaces().map { firstLeafId(it) }) }
+    // Une case active par espace (2 = l'horloge dans l'espace 2, comme à l'étape 3).
+    // rememberSaveable : survit à la recréation de l'activité (ex. changement de palette par le widget
+    // « thème » : le système recrée l'activité, la case active ne doit pas revenir à la première).
+    var activeIds by rememberSaveable(stateSaver = activeIdsSaver) {
+        mutableStateOf(defaultWorkspaces().map { firstLeafId(it) })
+    }
     val pagerState = rememberPagerState(initialPage = HOME_WORKSPACE) { WORKSPACE_COUNT }
     val scope = rememberCoroutineScope()
     var editMode by remember { mutableStateOf(initialEditMode) }

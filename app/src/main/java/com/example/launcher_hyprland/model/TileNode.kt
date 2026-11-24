@@ -10,7 +10,7 @@ import kotlinx.serialization.Serializable
  * Ce qu'affiche une case. Sauvegardé par NOM dans le JSON de la disposition :
  * on peut AJOUTER des valeurs, jamais en renommer ni en supprimer (l'ancien JSON deviendrait illisible).
  */
-enum class WidgetType { CLOCK, AGENDA, NOTES, EMPTY, BATTERY, CALENDAR, PALETTE }
+enum class WidgetType { CLOCK, AGENDA, NOTES, EMPTY, BATTERY, CALENDAR, PALETTE, THEME }
 
 /** Sens de la découpe d'un [TileNode.Split]. */
 enum class Direction {

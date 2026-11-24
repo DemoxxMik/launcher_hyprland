@@ -5,6 +5,14 @@
     <!-- Lecture de l'agenda (permission « dangereuse » : demandée à l'exécution, voir l'étape 5d) -->
     <uses-permission android:name="android.permission.READ_CALENDAR" />
 
+    <!-- Widget « thème » (étape 8.7) : changer le fond d'écran (permission normale) -->
+    <uses-permission android:name="android.permission.SET_WALLPAPER" />
+    <!-- Widget « thème » : écrire le choix de palette Material You. Réservée au système : à accorder une fois
+         par adb shell pm grant com.example.launcher_hyprland android.permission.WRITE_SECURE_SETTINGS -->
+    <uses-permission
+        android:name="android.permission.WRITE_SECURE_SETTINGS"
+        tools:ignore="ProtectedPermissions" />
+
     <!-- Android 11+ : sans ceci, queryIntentActivities ne voit pas les autres apps (lanceur d'apps) -->
     <queries>
         <intent>
