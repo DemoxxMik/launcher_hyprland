@@ -1,10 +1,12 @@
 package com.example.launcher_hyprland.ui
 
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.launcher_hyprland.R
 
 /** Toutes les valeurs du design au même endroit : on règle l'apparence ici, et seulement ici. */
 object LauncherStyle {
@@ -69,8 +71,12 @@ object LauncherStyle {
     val fallbackField = Color(0xFF313244)
     val fallbackOnAccent = Color(0xFF1E1E2E)
 
-    // Police : pas de JetBrains Mono dans res/font/ -> monospace systeme (a embarquer plus tard)
-    val font = FontFamily.Monospace
+    // Police : JetBrains Mono embarquée (res/font/, licence OFL dans docs/OFL.txt), 3 graisses
+    val font = FontFamily(
+        Font(R.font.jetbrains_mono_light, FontWeight.Light),
+        Font(R.font.jetbrains_mono_regular, FontWeight.Normal),
+        Font(R.font.jetbrains_mono_bold, FontWeight.Bold),
+    )
     val weightHuge = FontWeight.Light // l'heure : ~44 sp Light
 
     // Tailles de texte : les widgets n'écrivent jamais de `.sp` eux-mêmes, ils prennent l'une de celles-ci.
