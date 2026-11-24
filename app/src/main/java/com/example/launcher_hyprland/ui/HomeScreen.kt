@@ -1,6 +1,18 @@
 package com.example.launcher_hyprland.ui
 
+import android.Manifest
+import android.app.Activity
+import android.content.ActivityNotFoundException
+import android.content.Context
+import android.content.ContextWrapper
+import android.content.Intent
+import android.provider.Settings
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.app.ActivityCompat
+import androidx.core.net.toUri
+import com.example.launcher_hyprland.ui.widgets.agenda.hasCalendarPermission
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -53,6 +65,15 @@ fun HomeScreen(initialEditMode: Boolean = false) {
     val store = if (LocalInspectionMode.current) null else remember { LayoutStore(context.applicationContext) }
     var loaded by remember { mutableStateOf(store == null) } // tant que false : ne rien sauvegarder
 
+    // Boîte système de permission agenda. Si Android ne la montre plus (refus définitif), le résultat
+    // arrive tout de suite « refusé » et sans justification possible : on ouvre alors les Paramètres.
+    // AGENDA ouvre l'app Agenda une fois la permission accordée ; CALENDAR reste sur l'accueil.
+    var openAgendaOnGrant by remember { mutableStateOf(false) }
+    val calendarPermissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        if (granted) { if (openAgendaOnGrant) openCalendarApp(context) }
+        else if (!canShowCalendarDialog(context)) openAppSettings(context)
+    }
+
     // Au démarrage : une seule fois (clé Unit qui ne change jamais), on relit la disposition.
     LaunchedEffect(Unit) {
         if (store == null) return@LaunchedEffect
@@ -73,10 +94,21 @@ fun HomeScreen(initialEditMode: Boolean = false) {
 
     // --- les callbacks, passés vers le bas ---
     // 2e toucher sur la case déjà active (hors mode édition) : l'action du widget.
-    // Les widgets n'ont pas de zone cliquable à eux : tout toucher passe par la Tile.
+    // Arrive ici tout toucher qui n'est pas capté par une zone cliquable du widget (voir widgetClickable).
     fun onWidgetAction(id: Int) {
         when (findLeaf(tree, id)?.widget) {
             WidgetType.NOTES -> openNoteId = id
+            WidgetType.AGENDA ->
+                if (hasCalendarPermission(context)) openCalendarApp(context)
+                else {
+                    openAgendaOnGrant = true
+                    calendarPermissionLauncher.launch(Manifest.permission.READ_CALENDAR)
+                }
+            WidgetType.CALENDAR ->
+                if (!hasCalendarPermission(context)) {
+                    openAgendaOnGrant = false
+                    calendarPermissionLauncher.launch(Manifest.permission.READ_CALENDAR)
+                }
             else -> Unit // les autres widgets n'ont pas (encore) d'action
         }
     }
@@ -189,6 +221,32 @@ fun HomeScreen(initialEditMode: Boolean = false) {
             )
         }
     }
+}
+
+private fun openCalendarApp(context: Context) {
+    val intent = Intent.makeMainSelectorActivity(Intent.ACTION_MAIN, Intent.CATEGORY_APP_CALENDAR)
+        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    try {
+        context.startActivity(intent)
+    } catch (_: ActivityNotFoundException) {
+        // pas d'app Agenda installée : rien à ouvrir
+    }
+}
+
+private fun openAppSettings(context: Context) {
+    val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, "package:${context.packageName}".toUri())
+        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    try {
+        context.startActivity(intent)
+    } catch (_: ActivityNotFoundException) {
+    }
+}
+
+/** Vrai si Android peut encore afficher la boîte (faux après un refus définitif). */
+private fun canShowCalendarDialog(context: Context): Boolean {
+    val activity = generateSequence(context) { (it as? ContextWrapper)?.baseContext }
+        .filterIsInstance<Activity>().firstOrNull() ?: return true
+    return ActivityCompat.shouldShowRequestPermissionRationale(activity, Manifest.permission.READ_CALENDAR)
 }
 
 @Preview(widthDp = 412, heightDp = 915, showBackground = true, backgroundColor = 0xFF5A6B85)

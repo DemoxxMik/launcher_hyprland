@@ -77,7 +77,13 @@ private fun NodeView(
                 onLongClick = { onTileLongClick(node.id) },
                 modifier = modifier,
             ) {
-                WidgetContent(node.widget, leafId = node.id, active = node.id == activeId)
+                WidgetContent(
+                    node.widget,
+                    leafId = node.id,
+                    active = node.id == activeId,
+                    editMode = editMode,
+                    onLongClick = { onTileLongClick(node.id) },
+                )
             }
         }
 

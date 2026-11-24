@@ -21,6 +21,7 @@ private val pickerOrder = listOf(
     WidgetType.BATTERY,
     WidgetType.NOTES,
     WidgetType.AGENDA,
+    WidgetType.CALENDAR,
     WidgetType.EMPTY,
 )
 
