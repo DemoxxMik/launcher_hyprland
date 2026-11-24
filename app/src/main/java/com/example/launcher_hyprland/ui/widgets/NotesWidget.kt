@@ -10,6 +10,7 @@ import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.launcher_hyprland.data.NotesStore
 import com.example.launcher_hyprland.ui.LauncherStyle
+import com.example.launcher_hyprland.ui.LauncherTheme
 
 private const val NOTE_LINES = 6
 
@@ -34,9 +35,9 @@ fun NotesWidget(leafId: Int) {
 @Composable
 private fun NotesContent(text: String) {
     Column(verticalArrangement = Arrangement.spacedBy(LauncherStyle.lineSpacing)) {
-        MonoText("notes", color = LauncherStyle.textMuted, size = LauncherStyle.textSmall)
+        TileLabel("notes")
         if (text.isBlank()) {
-            MonoText("touche 2× pour écrire", color = LauncherStyle.textMuted)
+            MonoText("touche 2× pour écrire", color = LauncherTheme.colors.muted)
         } else {
             MonoText(text, maxLines = NOTE_LINES)
         }

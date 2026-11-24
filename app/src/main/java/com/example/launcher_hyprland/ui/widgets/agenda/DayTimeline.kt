@@ -26,6 +26,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.launcher_hyprland.data.CalendarEvent
 import com.example.launcher_hyprland.data.ClockSource
 import com.example.launcher_hyprland.ui.LauncherStyle
+import com.example.launcher_hyprland.ui.LauncherTheme
 import com.example.launcher_hyprland.ui.widgets.MonoText
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -148,7 +149,7 @@ private fun LabelRow(text: String) {
     Row(Modifier.fillMaxWidth().height(LauncherStyle.timelineNowHeight)) {
         Box(Modifier.width(LauncherStyle.timelineHourWidth + LauncherStyle.timelineSpineWidth))
         Box(Modifier.align(Alignment.CenterVertically)) {
-            MonoText(text, color = LauncherStyle.textMuted, size = LauncherStyle.textSmall)
+            MonoText(text, color = LauncherTheme.colors.muted, size = LauncherStyle.textSmall)
         }
     }
 }
@@ -160,7 +161,7 @@ private fun NowRow(time: LocalDateTime) {
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Box(Modifier.width(LauncherStyle.timelineHourWidth)) {
-            MonoText(time.format(hourFormat), color = LauncherStyle.accent, size = LauncherStyle.textSmall, weight = FontWeight.Bold)
+            MonoText(time.format(hourFormat), color = LauncherTheme.colors.accent, size = LauncherStyle.textSmall, weight = FontWeight.Bold)
         }
         Box(Modifier.weight(1f).fillMaxHeight()) {
             // la colonne verticale continue derrière, la ligne « maintenant » la traverse
@@ -169,7 +170,7 @@ private fun NowRow(time: LocalDateTime) {
                     .align(Alignment.Center)
                     .fillMaxWidth()
                     .height(LauncherStyle.lineWidth)
-                    .background(LauncherStyle.accent),
+                    .background(LauncherTheme.colors.accent),
             )
         }
     }
@@ -178,13 +179,14 @@ private fun NowRow(time: LocalDateTime) {
 @Composable
 private fun EventRow(event: CalendarEvent, kind: Kind) {
     val past = if (kind == Kind.PAST) LauncherStyle.pastAlpha else 1f
-    val titleColor = LauncherStyle.textPrimary.faded(past)
-    val mutedColor = LauncherStyle.textMuted.faded(past)
-    val spine = LauncherStyle.textMuted.faded(LauncherStyle.dimAlpha * past)
+    val colors = LauncherTheme.colors
+    val titleColor = if (kind == Kind.PAST) colors.muted else colors.text
+    val mutedColor = colors.muted.faded(past)
+    val spine = colors.border
     val dotColor = when (kind) {
-        Kind.NEXT -> LauncherStyle.accent
-        Kind.PAST -> LauncherStyle.textMuted.faded(past)
-        else -> LauncherStyle.accentSecondary
+        Kind.NEXT -> colors.accent
+        Kind.PAST -> colors.border
+        else -> colors.muted
     }
     val hour = if (event.allDay) "" else event.start.format(hourFormat)
     val locationLine = when {

@@ -6,11 +6,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.example.launcher_hyprland.ui.LauncherStyle
+import com.example.launcher_hyprland.ui.LauncherTheme
 
 /** Case sans widget : rappelle comment en choisir un. */
 @Composable
 fun EmptyWidget() {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        MonoText("vide · appui long › widget", color = LauncherStyle.textMuted, size = LauncherStyle.textSmall)
+        MonoText("vide · appui long › widget", color = LauncherTheme.colors.muted, size = LauncherStyle.textSmall)
     }
 }

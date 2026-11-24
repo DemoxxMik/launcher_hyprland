@@ -26,9 +26,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import com.example.launcher_hyprland.data.CalendarEvent
 import com.example.launcher_hyprland.ui.LauncherStyle
+import com.example.launcher_hyprland.ui.LauncherTheme
 import com.example.launcher_hyprland.ui.widgets.MonoText
 import com.example.launcher_hyprland.ui.widgets.widgetClickable
-import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
@@ -56,18 +56,16 @@ fun WeekGrid(
     val today = now.toLocalDate()
     val days = remember(selected) { weekStart(selected).let { s -> (0L..6L).map { s.plusDays(it) } } }
     val allDayByDay = remember(events, days) { days.map { d -> events.filter { it.allDay && it.isOn(d) } } }
-    val gridLine = LauncherStyle.textMuted.faded(LauncherStyle.gridLineAlpha)
+    val gridLine = LauncherTheme.colors.border
 
     Column(modifier) {
         // En-têtes « lun 23 »
         Row(Modifier.fillMaxWidth().height(LauncherStyle.weekHeaderHeight)) {
             Spacer(Modifier.width(LauncherStyle.weekHourWidth))
             days.forEachIndexed { i, d ->
-                val weekend = d.dayOfWeek == DayOfWeek.SATURDAY || d.dayOfWeek == DayOfWeek.SUNDAY
                 val color = when {
-                    d == today -> LauncherStyle.accent
-                    weekend -> LauncherStyle.textMuted.faded(LauncherStyle.dimAlpha)
-                    else -> LauncherStyle.textMuted
+                    d == today -> LauncherTheme.colors.accent
+                    else -> LauncherTheme.colors.muted
                 }
                 Box(
                     Modifier
@@ -123,7 +121,7 @@ fun WeekGrid(
                 )
                 if (h < END_HOUR) {
                     Box(Modifier.offset(y = y)) {
-                        MonoText(h.toString().padStart(2, '0'), color = LauncherStyle.textMuted, size = LauncherStyle.textTiny)
+                        MonoText(h.toString().padStart(2, '0'), color = LauncherTheme.colors.muted, size = LauncherStyle.textTiny)
                     }
                 }
             }
@@ -171,7 +169,7 @@ private fun DayColumn(day: LocalDate, events: List<CalendarEvent>, now: LocalDat
                         .offset(y = hourHeight * (minutes / 60f))
                         .fillMaxWidth()
                         .height(LauncherStyle.lineWidth)
-                        .background(LauncherStyle.accent),
+                        .background(LauncherTheme.colors.accent),
                 )
             }
         }
@@ -185,13 +183,13 @@ private fun EventBlock(event: CalendarEvent, past: Boolean, modifier: Modifier) 
     Box(
         modifier
             .clip(shape)
-            .background(LauncherStyle.accent.faded(LauncherStyle.eventFillAlpha * fade), shape)
-            .border(LauncherStyle.lineWidth, LauncherStyle.accent.faded(LauncherStyle.eventBorderAlpha * fade), shape)
+            .background(LauncherTheme.colors.accent.faded(LauncherStyle.eventFillAlpha * fade), shape)
+            .border(LauncherStyle.lineWidth, LauncherTheme.colors.accent.faded(LauncherStyle.eventBorderAlpha * fade), shape)
             .padding(LauncherStyle.weekBlockPadding),
     ) {
         MonoText(
             event.title.ifBlank { "(sans titre)" },
-            color = LauncherStyle.textPrimary.faded(fade),
+            color = LauncherTheme.colors.text.faded(fade),
             size = LauncherStyle.textTiny,
         )
     }

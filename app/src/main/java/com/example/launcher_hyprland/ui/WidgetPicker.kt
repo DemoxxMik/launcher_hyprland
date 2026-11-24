@@ -36,17 +36,18 @@ fun WidgetPicker(
     onCancel: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val colors = LauncherTheme.colors
     val shape = RoundedCornerShape(LauncherStyle.cornerRadius)
     Column(
         modifier = modifier
             .fillMaxWidth()
             .clip(shape)
-            .background(LauncherStyle.tileBackground, shape)
-            .border(LauncherStyle.borderWidth, LauncherStyle.borderInactive, shape)
+            .background(colors.tile, shape)
+            .border(LauncherStyle.borderWidth, colors.border, shape)
             .padding(4.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        MonoText("widget de la case :", color = LauncherStyle.textMuted, size = LauncherStyle.textSmall)
+        MonoText("widget de la case :", color = colors.muted, size = LauncherStyle.textSmall)
         for (type in pickerOrder) {
             BarButton(type.label(), highlighted = type == current, onClick = { onPick(type) })
         }

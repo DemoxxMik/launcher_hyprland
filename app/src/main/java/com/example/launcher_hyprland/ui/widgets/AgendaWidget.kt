@@ -19,6 +19,7 @@ import com.example.launcher_hyprland.data.CalendarEvent
 import com.example.launcher_hyprland.data.CalendarSource
 import com.example.launcher_hyprland.data.ClockSource
 import com.example.launcher_hyprland.ui.LauncherStyle
+import com.example.launcher_hyprland.ui.LauncherTheme
 import com.example.launcher_hyprland.ui.widgets.agenda.DayTimeline
 import com.example.launcher_hyprland.ui.widgets.agenda.rememberCalendarPermission
 import kotlinx.coroutines.flow.Flow
@@ -54,17 +55,17 @@ private fun AgendaContent(
     now: LocalDateTime? = null,
 ) {
     if (!granted) {
-        MonoText("agenda · touche 2× pour autoriser", color = LauncherStyle.textMuted, size = LauncherStyle.textSmall)
+        MonoText("agenda · touche 2× pour autoriser", color = LauncherTheme.colors.muted, size = LauncherStyle.textSmall)
         return
     }
     Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(LauncherStyle.lineSpacing)) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            MonoText("aujourd'hui", color = LauncherStyle.textMuted, size = LauncherStyle.textSmall)
+            TileLabel("aujourd'hui")
             Spacer(Modifier.weight(1f))
-            MonoText(events.size.toString(), color = LauncherStyle.textMuted, size = LauncherStyle.textSmall)
+            MonoText(events.size.toString(), color = LauncherTheme.colors.muted, size = LauncherStyle.textSmall)
         }
         if (events.isEmpty()) {
-            MonoText("rien aujourd'hui", color = LauncherStyle.textMuted, size = LauncherStyle.textSmall)
+            MonoText("rien aujourd'hui", color = LauncherTheme.colors.muted, size = LauncherStyle.textSmall)
         } else {
             DayTimeline(events = events, day = today, modifier = Modifier.weight(1f).fillMaxWidth(), now = now)
         }

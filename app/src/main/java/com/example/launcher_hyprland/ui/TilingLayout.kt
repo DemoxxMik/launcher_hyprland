@@ -135,6 +135,7 @@ private fun Handle(
     onDrag: (Float) -> Unit,
 ) {
     val horizontal = orientation == Orientation.Horizontal
+    val handleColor = LauncherTheme.colors.text.copy(alpha = 0.9f)
     val thickness = if (editMode) LauncherStyle.editGap else LauncherStyle.gap
     val sizeModifier =
         if (horizontal) Modifier.width(thickness).fillMaxHeight()
@@ -152,7 +153,7 @@ private fun Handle(
             val barSize =
                 if (horizontal) Modifier.size(LauncherStyle.handleThickness, LauncherStyle.handleLength)
                 else Modifier.size(LauncherStyle.handleLength, LauncherStyle.handleThickness)
-            Box(barSize.background(LauncherStyle.handleColor, RoundedCornerShape(50)))
+            Box(barSize.background(handleColor, RoundedCornerShape(50)))
         }
     }
 }

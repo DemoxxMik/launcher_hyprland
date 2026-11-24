@@ -11,6 +11,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.TextUnit
 import com.example.launcher_hyprland.model.WidgetType
 import com.example.launcher_hyprland.ui.LauncherStyle
+import com.example.launcher_hyprland.ui.LauncherTheme
+import com.example.launcher_hyprland.ui.LocalTileActive
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.unit.dp
 import com.example.launcher_hyprland.ui.widgets.agenda.CalendarPageWidget
 
 /**
@@ -63,11 +69,31 @@ fun WidgetType.label(): String = when (this) {
     WidgetType.CALENDAR -> "calendrier"
 }
 
+/**
+ * Etiquette d'une case (« notes », « agenda »...), en minuscules. Case active : pastille remplie d'accent
+ * (texte sur accent) ; sinon texte attenue, petit.
+ */
+@Composable
+fun TileLabel(text: String) {
+    val colors = LauncherTheme.colors
+    if (LocalTileActive.current) {
+        androidx.compose.foundation.layout.Box(
+            Modifier
+                .background(colors.accent, RoundedCornerShape(3.dp))
+                .padding(horizontal = 5.dp),
+        ) {
+            MonoText(text.lowercase(), color = colors.onAccent, size = LauncherStyle.textSmall, maxLines = 1)
+        }
+    } else {
+        MonoText(text.lowercase(), color = colors.muted, size = LauncherStyle.textSmall, maxLines = 1)
+    }
+}
+
 /** Texte maison : impose la police monospace partout. Coupe avec « … » au-delà de [maxLines]. */
 @Composable
 fun MonoText(
     text: String,
-    color: Color = LauncherStyle.textPrimary,
+    color: Color = LauncherTheme.colors.text,
     size: TextUnit = LauncherStyle.textBody,
     maxLines: Int = Int.MAX_VALUE,
     weight: FontWeight? = null,

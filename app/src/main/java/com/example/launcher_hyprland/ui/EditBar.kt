@@ -35,19 +35,20 @@ fun EditBar(
     onOk: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val colors = LauncherTheme.colors
     val shape = RoundedCornerShape(LauncherStyle.cornerRadius)
     Column(
         modifier = modifier
             .fillMaxWidth()
             .clip(shape)
-            .background(LauncherStyle.tileBackground, shape)
-            .border(LauncherStyle.borderWidth, LauncherStyle.borderInactive, shape)
+            .background(colors.tile, shape)
+            .border(LauncherStyle.borderWidth, colors.border, shape)
             .padding(4.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         if (swapPending) {
             Box(Modifier.padding(top = 8.dp)) {
-                MonoText("swap : touche une case", color = LauncherStyle.borderSwap, size = LauncherStyle.textSmall)
+                MonoText("swap : touche une case", color = colors.accent2, size = LauncherStyle.textSmall)
             }
         }
         Row(
@@ -76,6 +77,7 @@ internal fun BarButton(
     highlighted: Boolean = false,
     onClick: () -> Unit,
 ) {
+    val colors = LauncherTheme.colors
     Box(
         modifier = Modifier
             .clip(RoundedCornerShape(8.dp))
@@ -85,9 +87,9 @@ internal fun BarButton(
         MonoText(
             text = label,
             color = when {
-                !enabled -> LauncherStyle.textMuted
-                highlighted -> LauncherStyle.borderSwap
-                else -> LauncherStyle.textPrimary
+                !enabled -> colors.muted
+                highlighted -> colors.accent2
+                else -> colors.text
             },
         )
     }

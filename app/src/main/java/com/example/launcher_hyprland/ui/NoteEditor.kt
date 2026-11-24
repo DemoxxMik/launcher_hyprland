@@ -69,6 +69,7 @@ fun NoteEditor(leafId: Int, onClose: () -> Unit) {
         }
     }
 
+    val colors = LauncherTheme.colors
     val shape = RoundedCornerShape(LauncherStyle.cornerRadius)
     Box(
         modifier = Modifier
@@ -77,8 +78,8 @@ fun NoteEditor(leafId: Int, onClose: () -> Unit) {
             .imePadding()
             .padding(LauncherStyle.gap)
             .clip(shape)
-            .background(LauncherStyle.tileBackground, shape)
-            .border(LauncherStyle.borderWidth, LauncherStyle.borderActive, shape)
+            .background(colors.tile, shape)
+            .border(LauncherStyle.borderWidth, colors.accent, shape)
             .padding(LauncherStyle.tilePadding),
     ) {
         val current = value
@@ -88,11 +89,11 @@ fun NoteEditor(leafId: Int, onClose: () -> Unit) {
                 onValueChange = { value = it },
                 modifier = Modifier.fillMaxSize().focusRequester(focusRequester),
                 textStyle = TextStyle(
-                    color = LauncherStyle.textPrimary,
+                    color = colors.text,
                     fontSize = LauncherStyle.textBody,
                     fontFamily = LauncherStyle.font,
                 ),
-                cursorBrush = SolidColor(LauncherStyle.borderActive),
+                cursorBrush = SolidColor(colors.accent),
             )
             // Le champ existe maintenant : on lui donne le focus, ce qui ouvre le clavier.
             LaunchedEffect(Unit) { focusRequester.requestFocus() }

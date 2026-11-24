@@ -11,12 +11,13 @@ import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.launcher_hyprland.data.ClockSource
 import com.example.launcher_hyprland.ui.LauncherStyle
+import com.example.launcher_hyprland.ui.LauncherTheme
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 private val timeFormat = DateTimeFormatter.ofPattern("HH:mm", Locale.FRENCH)
-private val dateFormat = DateTimeFormatter.ofPattern("EEE d MMM", Locale.FRENCH) // « lun. 24 nov. »
+private val dateFormat = DateTimeFormatter.ofPattern("EEEE d MMMM", Locale.FRENCH) // « lun. 24 nov. »
 
 /** L'heure et la date, mises à jour à chaque minute, SEULEMENT quand l'accueil est visible. */
 @Composable
@@ -38,9 +39,17 @@ fun ClockWidget() {
 private fun ClockContent(now: LocalDateTime) {
     Column(
         modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
+        verticalArrangement = Arrangement.SpaceBetween,
     ) {
-        MonoText(now.format(timeFormat), size = LauncherStyle.textHuge, maxLines = 1)
-        MonoText(now.format(dateFormat), color = LauncherStyle.textMuted, maxLines = 1)
+        TileLabel("horloge")
+        Column {
+            MonoText(
+                now.format(timeFormat),
+                size = LauncherStyle.textHuge,
+                weight = LauncherStyle.weightHuge,
+                maxLines = 1,
+            )
+            MonoText(now.format(dateFormat), color = LauncherTheme.colors.muted, maxLines = 1)
+        }
     }
 }

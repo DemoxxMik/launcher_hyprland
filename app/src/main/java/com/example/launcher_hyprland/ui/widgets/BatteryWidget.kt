@@ -14,6 +14,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.launcher_hyprland.data.BatterySource
 import com.example.launcher_hyprland.data.BatteryState
 import com.example.launcher_hyprland.ui.LauncherStyle
+import com.example.launcher_hyprland.ui.LauncherTheme
 
 private const val BAR_CELLS = 10
 
@@ -40,13 +41,13 @@ private fun BatteryContent(state: BatteryState?) {
         verticalArrangement = Arrangement.spacedBy(LauncherStyle.lineSpacing, Alignment.CenterVertically),
     ) {
         if (state == null) {
-            MonoText("--%", size = LauncherStyle.textHuge, maxLines = 1)
+            MonoText("--%", size = LauncherStyle.textHuge, weight = LauncherStyle.weightHuge, maxLines = 1)
             return@Column
         }
-        MonoText("${state.percent}%", size = LauncherStyle.textHuge, maxLines = 1)
+        MonoText("${state.percent}%", size = LauncherStyle.textHuge, weight = LauncherStyle.weightHuge, maxLines = 1)
         MonoText(
             bar(state.percent),
-            color = if (state.charging) LauncherStyle.borderActive else LauncherStyle.textPrimary,
+            color = if (state.charging) LauncherTheme.colors.accent2 else LauncherTheme.colors.text,
             maxLines = 1,
         )
         MonoText(
@@ -55,7 +56,7 @@ private fun BatteryContent(state: BatteryState?) {
                 state.plugged -> "secteur"   // branché mais plein : ne charge plus
                 else -> "batterie"
             },
-            color = LauncherStyle.textMuted,
+            color = LauncherTheme.colors.muted,
             maxLines = 1,
         )
     }

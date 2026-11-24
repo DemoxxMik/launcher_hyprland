@@ -1,7 +1,6 @@
 package com.example.launcher_hyprland.ui.widgets.agenda
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -28,6 +27,7 @@ import com.example.launcher_hyprland.data.CalendarEvent
 import com.example.launcher_hyprland.data.CalendarSource
 import com.example.launcher_hyprland.data.ClockSource
 import com.example.launcher_hyprland.ui.LauncherStyle
+import com.example.launcher_hyprland.ui.LauncherTheme
 import com.example.launcher_hyprland.ui.widgets.MonoText
 import com.example.launcher_hyprland.ui.widgets.widgetClickable
 import java.time.DayOfWeek
@@ -67,7 +67,7 @@ fun CalendarPageWidget(interactive: Boolean, onLongClick: () -> Unit) {
     val selected = LocalDate.ofEpochDay(selectedEpochDay)
 
     if (!granted) {
-        MonoText("calendrier · touche 2× pour autoriser", color = LauncherStyle.textMuted, size = LauncherStyle.textSmall)
+        MonoText("calendrier · touche 2× pour autoriser", color = LauncherTheme.colors.muted, size = LauncherStyle.textSmall)
         return
     }
 
@@ -133,10 +133,12 @@ private fun CalendarPageContent(
 /** Pilule : choisie = remplie en accent, l'autre = contour accent. */
 @Composable
 private fun Pill(text: String, chosen: Boolean, interactive: Boolean, onLongClick: () -> Unit, onClick: () -> Unit) {
+    val colors = LauncherTheme.colors
     val shape = RoundedCornerShape(percent = 50)
+    // choisie = remplie d'accent ; l'autre = fond « champ » (maquette : .mini-seg)
     val look =
-        if (chosen) Modifier.background(LauncherStyle.accent, shape)
-        else Modifier.border(LauncherStyle.lineWidth, LauncherStyle.accent, shape)
+        if (chosen) Modifier.background(colors.accent, shape)
+        else Modifier.background(colors.field, shape)
     Box(
         look
             .clip(shape)
@@ -145,7 +147,7 @@ private fun Pill(text: String, chosen: Boolean, interactive: Boolean, onLongClic
     ) {
         MonoText(
             text,
-            color = if (chosen) LauncherStyle.textOnAccent else LauncherStyle.textPrimary,
+            color = if (chosen) colors.onAccent else colors.muted,
             size = LauncherStyle.textSmall,
         )
     }

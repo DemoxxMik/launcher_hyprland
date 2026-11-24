@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import com.example.launcher_hyprland.data.CalendarEvent
 import com.example.launcher_hyprland.ui.LauncherStyle
+import com.example.launcher_hyprland.ui.LauncherTheme
 import com.example.launcher_hyprland.ui.widgets.MonoText
 import com.example.launcher_hyprland.ui.widgets.widgetClickable
 import java.time.DayOfWeek
@@ -59,7 +60,7 @@ fun MonthGrid(
         Row(Modifier.fillMaxWidth()) {
             weekdayInitials.forEach {
                 Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
-                    MonoText(it, color = LauncherStyle.textMuted, size = LauncherStyle.textSmall)
+                    MonoText(it, color = LauncherTheme.colors.muted, size = LauncherStyle.textSmall)
                 }
             }
         }
@@ -86,13 +87,13 @@ fun MonthGrid(
             Modifier
                 .fillMaxWidth()
                 .height(LauncherStyle.lineWidth)
-                .background(LauncherStyle.textMuted.faded(LauncherStyle.gridLineAlpha)),
+                .background(LauncherTheme.colors.border),
         )
         Spacer(Modifier.height(LauncherStyle.lineSpacing))
-        MonoText(selected.format(dayLabelFormat), color = LauncherStyle.textMuted, size = LauncherStyle.textSmall)
+        MonoText(selected.format(dayLabelFormat), color = LauncherTheme.colors.muted, size = LauncherStyle.textSmall)
         Spacer(Modifier.height(LauncherStyle.lineSpacing))
         if (dayEvents.isEmpty()) {
-            MonoText("rien ce jour-là", color = LauncherStyle.textMuted, size = LauncherStyle.textSmall)
+            MonoText("rien ce jour-là", color = LauncherTheme.colors.muted, size = LauncherStyle.textSmall)
         } else {
             DayTimeline(events = dayEvents, day = selected, now = now, modifier = Modifier.weight(1f).fillMaxWidth())
         }
@@ -108,6 +109,7 @@ private fun DayCell(
     hasEvents: Boolean,
     modifier: Modifier,
 ) {
+    val colors = LauncherTheme.colors
     val weekend = date.dayOfWeek == DayOfWeek.SATURDAY || date.dayOfWeek == DayOfWeek.SUNDAY
     val fade = when {
         !inMonth -> LauncherStyle.outsideAlpha
@@ -115,7 +117,7 @@ private fun DayCell(
         else -> 1f
     }
     val selectedBorder =
-        if (isSelected) Modifier.border(LauncherStyle.lineWidth, LauncherStyle.accent, RoundedCornerShape(LauncherStyle.calendarCellCorner))
+        if (isSelected) Modifier.border(LauncherStyle.lineWidth, colors.border, RoundedCornerShape(LauncherStyle.calendarCellCorner))
         else Modifier
 
     Box(modifier.height(LauncherStyle.calendarCellHeight), contentAlignment = Alignment.Center) {
@@ -128,17 +130,22 @@ private fun DayCell(
             verticalArrangement = Arrangement.Center,
         ) {
             val pastille =
-                if (isToday) Modifier.background(LauncherStyle.accent, CircleShape) else Modifier
+                if (isToday) Modifier.background(colors.accent, CircleShape) else Modifier
             Box(Modifier.size(LauncherStyle.calendarDaySize).then(pastille), contentAlignment = Alignment.Center) {
                 MonoText(
                     date.dayOfMonth.toString(),
-                    color = if (isToday) LauncherStyle.textOnAccent else LauncherStyle.textPrimary.faded(fade),
+                    color = when {
+                        isToday -> colors.onAccent
+                        !inMonth -> colors.border
+                        weekend -> colors.muted
+                        else -> colors.text
+                    },
                     size = LauncherStyle.textSmall,
                     weight = FontWeight.Bold,
                 )
             }
             val dot = Modifier.size(LauncherStyle.calendarDotSize)
-            if (hasEvents) Box(dot.background(LauncherStyle.accentSecondary.faded(fade), CircleShape))
+            if (hasEvents) Box(dot.background(colors.accent2.faded(fade), CircleShape))
             else Box(dot)
         }
     }
