@@ -20,23 +20,27 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.tooling.preview.Preview
+import com.example.launcher_hyprland.data.HOME_WORKSPACE
 import com.example.launcher_hyprland.data.LayoutStore
+import com.example.launcher_hyprland.data.WORKSPACE_COUNT
+import com.example.launcher_hyprland.data.defaultWorkspaces
 import com.example.launcher_hyprland.model.Direction
 import com.example.launcher_hyprland.model.TileNode
 import com.example.launcher_hyprland.model.WidgetType
 import com.example.launcher_hyprland.model.closeLeaf
-import com.example.launcher_hyprland.model.defaultTree
 import com.example.launcher_hyprland.model.findLeaf
 import com.example.launcher_hyprland.model.firstLeafId
 import com.example.launcher_hyprland.model.leafCount
@@ -47,18 +51,37 @@ import com.example.launcher_hyprland.model.siblingOf
 import com.example.launcher_hyprland.model.splitLeaf
 import com.example.launcher_hyprland.model.swapLeaves
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.milliseconds
 
-/** Écran d'accueil : possède tout l'état et le passe vers le bas. */
+/**
+ * Écran d'accueil : possède tout l'état et le passe vers le bas.
+ * 4 espaces de travail (un arbre chacun) dans un pager ; les commandes d'édition agissent sur l'espace affiché.
+ */
 @Composable
 fun HomeScreen(initialEditMode: Boolean = false) {
     // L'état : chaque nouvelle valeur affectée → Compose redessine ce qui en dépend.
-    var tree by remember { mutableStateOf<TileNode>(defaultTree()) }
-    var activeId by remember { mutableIntStateOf(2) } // 2 = l'horloge, comme à l'étape 3
+    var trees by remember { mutableStateOf<List<TileNode>>(defaultWorkspaces()) }
+    // Une case active par espace (2 = l'horloge dans l'espace 2, comme à l'étape 3)
+    var activeIds by remember { mutableStateOf(defaultWorkspaces().map { firstLeafId(it) }) }
+    val pagerState = rememberPagerState(initialPage = HOME_WORKSPACE) { WORKSPACE_COUNT }
+    val scope = rememberCoroutineScope()
     var editMode by remember { mutableStateOf(initialEditMode) }
     var swapFromId by remember { mutableStateOf<Int?>(null) } // case de départ d'un échange, ou null
     var pickerOpen by remember { mutableStateOf(false) }      // la liste des widgets remplace l'EditBar
     var openNoteId by remember { mutableStateOf<Int?>(null) } // case dont on édite la note, ou null
+
+    // L'espace affiché, lu à l'appel (jamais une valeur gardée d'avant) : le balayage est coupé en mode édition.
+    fun curTree(): TileNode = trees[pagerState.currentPage]
+    fun curActive(): Int = activeIds[pagerState.currentPage]
+    fun setTree(tree: TileNode) {
+        val page = pagerState.currentPage
+        trees = trees.toMutableList().also { it[page] = tree }
+    }
+    fun setActive(id: Int) {
+        val page = pagerState.currentPage
+        activeIds = activeIds.toMutableList().also { it[page] = id }
+    }
 
     // --- sauvegarde (pas dans l'aperçu d'Android Studio : il n'a pas de vrai stockage) ---
     val context = LocalContext.current
@@ -74,29 +97,32 @@ fun HomeScreen(initialEditMode: Boolean = false) {
         else if (!canShowCalendarDialog(context)) openAppSettings(context)
     }
 
-    // Au démarrage : une seule fois (clé Unit qui ne change jamais), on relit la disposition.
+    // Au démarrage : une seule fois (clé Unit qui ne change jamais), on relit les dispositions.
     LaunchedEffect(Unit) {
         if (store == null) return@LaunchedEffect
         store.load()?.let { saved ->
-            tree = saved
-            if (findLeaf(saved, activeId) == null) activeId = firstLeafId(saved)
+            trees = saved
+            activeIds = saved.mapIndexed { i, tree ->
+                val old = activeIds[i]
+                if (findLeaf(tree, old) == null) firstLeafId(tree) else old
+            }
         }
         loaded = true
     }
 
-    // À chaque nouvel arbre : on relance la tâche. Si tree rechange avant 500 ms, Compose ANNULE
+    // À chaque nouveaux arbres : on relance la tâche. Si trees rechange avant 500 ms, Compose ANNULE
     // la tâche en cours (le delay s'interrompt) et en relance une → seule la dernière écrit (debounce).
-    LaunchedEffect(tree, loaded) {
+    LaunchedEffect(trees, loaded) {
         if (store == null || !loaded) return@LaunchedEffect
         delay(500.milliseconds)
-        store.save(tree)
+        store.save(trees)
     }
 
     // --- les callbacks, passés vers le bas ---
     // 2e toucher sur la case déjà active (hors mode édition) : l'action du widget.
     // Arrive ici tout toucher qui n'est pas capté par une zone cliquable du widget (voir widgetClickable).
     fun onWidgetAction(id: Int) {
-        when (findLeaf(tree, id)?.widget) {
+        when (findLeaf(curTree(), id)?.widget) {
             WidgetType.NOTES -> openNoteId = id
             WidgetType.AGENDA ->
                 if (hasCalendarPermission(context)) openCalendarApp(context)
@@ -116,37 +142,40 @@ fun HomeScreen(initialEditMode: Boolean = false) {
     fun onTileClick(id: Int) {
         val from = swapFromId
         when {
-            from == null && id == activeId && !editMode -> onWidgetAction(id)
-            from == null -> activeId = id                    // cas normal : on sélectionne
+            from == null && id == curActive() && !editMode -> onWidgetAction(id)
+            from == null -> setActive(id)                    // cas normal : on sélectionne
             id == from -> swapFromId = null                  // retoucher la case de départ : annule
             else -> {                                        // une autre case : on échange
-                tree = swapLeaves(tree, from, id)
+                setTree(swapLeaves(curTree(), from, id))
                 swapFromId = null
-                // activeId ne change pas : la case active (= celle de départ) a juste changé de place
+                // la case active (= celle de départ) a juste changé de place
             }
         }
     }
 
     fun onSplit(direction: Direction) {
         swapFromId = null
+        val tree = curTree()
         val splitId = nextId(tree)
         val newLeafId = splitId + 1
-        tree = splitLeaf(tree, activeId, direction, splitId, newLeafId)
-        activeId = newLeafId // la nouvelle case devient active
+        setTree(splitLeaf(tree, curActive(), direction, splitId, newLeafId))
+        setActive(newLeafId) // la nouvelle case devient active
     }
 
     fun onClose() {
+        val tree = curTree()
         if (leafCount(tree) <= 1) return
         swapFromId = null
         // la voisine qui prend la place devient active (sa première case si c'est une découpe)
-        val sibling = siblingOf(tree, activeId)
-        tree = closeLeaf(tree, activeId)
-        activeId = if (sibling != null) firstLeafId(sibling) else firstLeafId(tree)
+        val sibling = siblingOf(tree, curActive())
+        val closed = closeLeaf(tree, curActive())
+        setTree(closed)
+        setActive(if (sibling != null) firstLeafId(sibling) else firstLeafId(closed))
     }
 
     fun onSwap() {
         // 1er appui : la case active devient le départ ; 2e appui : annule
-        swapFromId = if (swapFromId == null) activeId else null
+        swapFromId = if (swapFromId == null) curActive() else null
     }
 
     fun exitEditMode() {
@@ -172,33 +201,44 @@ fun HomeScreen(initialEditMode: Boolean = false) {
         return
     }
 
+    val shownPage = pagerState.currentPage
+    val shownTree = trees[shownPage]
     Column(
         modifier = Modifier
             .fillMaxSize()
             .systemBarsPadding()
             .padding(LauncherStyle.gap),
     ) {
-        TilingLayout(
-            tree = tree,
-            activeId = activeId,
-            editMode = editMode,
-            swapFromId = swapFromId,
-            onTileClick = { id -> onTileClick(id) },
-            onTileLongClick = { id ->
-                swapFromId = null
-                activeId = id
-                editMode = true
-            },
-            // On applique le delta à l'arbre ACTUEL (jamais à un vieux ratio gardé par la poignée).
-            onResize = { splitId, delta -> tree = resize(tree, splitId, delta) },
+        HorizontalPager(
+            state = pagerState,
+            // Le balayage est coupé en mode édition : il entrerait en conflit avec les poignées.
+            userScrollEnabled = !editMode,
+            pageSpacing = LauncherStyle.gap,
             modifier = Modifier.fillMaxWidth().weight(1f),
-        )
+        ) { page ->
+            val current = page == shownPage
+            TilingLayout(
+                tree = trees[page],
+                activeId = activeIds[page],
+                editMode = editMode && current,
+                swapFromId = if (current) swapFromId else null,
+                onTileClick = { id -> onTileClick(id) },
+                onTileLongClick = { id ->
+                    swapFromId = null
+                    setActive(id)
+                    editMode = true
+                },
+                // On applique le delta à l'arbre ACTUEL (jamais à un vieux ratio gardé par la poignée).
+                onResize = { splitId, delta -> setTree(resize(curTree(), splitId, delta)) },
+                modifier = Modifier.fillMaxSize(),
+            )
+        }
         if (editMode && pickerOpen) {
             Spacer(Modifier.height(LauncherStyle.gap))
             WidgetPicker(
-                current = findLeaf(tree, activeId)?.widget,
+                current = findLeaf(shownTree, activeIds[shownPage])?.widget,
                 onPick = { type ->
-                    tree = setWidget(tree, activeId, type) // nouvel arbre → redessin + sauvegarde (debounce)
+                    setTree(setWidget(curTree(), curActive(), type)) // nouvel arbre → redessin + sauvegarde (debounce)
                     pickerOpen = false
                 },
                 onCancel = { pickerOpen = false },
@@ -206,8 +246,8 @@ fun HomeScreen(initialEditMode: Boolean = false) {
         } else if (editMode) {
             Spacer(Modifier.height(LauncherStyle.gap))
             EditBar(
-                canClose = leafCount(tree) > 1,
-                canSwap = leafCount(tree) > 1,
+                canClose = leafCount(shownTree) > 1,
+                canSwap = leafCount(shownTree) > 1,
                 swapPending = swapFromId != null,
                 onSplitRow = { onSplit(Direction.ROW) },
                 onSplitColumn = { onSplit(Direction.COLUMN) },
@@ -220,6 +260,13 @@ fun HomeScreen(initialEditMode: Boolean = false) {
                 onOk = { exitEditMode() },
             )
         }
+        Spacer(Modifier.height(LauncherStyle.gap))
+        WorkspaceBar(
+            count = WORKSPACE_COUNT,
+            current = shownPage,
+            enabled = !editMode,
+            onSelect = { page -> scope.launch { pagerState.animateScrollToPage(page) } },
+        )
     }
 }
 
