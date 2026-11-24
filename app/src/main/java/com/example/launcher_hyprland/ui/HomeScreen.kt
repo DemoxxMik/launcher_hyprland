@@ -23,8 +23,10 @@ import com.example.launcher_hyprland.model.defaultTree
 import com.example.launcher_hyprland.model.firstLeafId
 import com.example.launcher_hyprland.model.leafCount
 import com.example.launcher_hyprland.model.nextId
+import com.example.launcher_hyprland.model.resize
 import com.example.launcher_hyprland.model.siblingOf
 import com.example.launcher_hyprland.model.splitLeaf
+import com.example.launcher_hyprland.model.swapLeaves
 
 /** Écran d'accueil : possède tout l'état et le passe vers le bas. */
 @Composable
@@ -33,9 +35,24 @@ fun HomeScreen(initialEditMode: Boolean = false) {
     var tree by remember { mutableStateOf<TileNode>(defaultTree()) }
     var activeId by remember { mutableIntStateOf(2) } // 2 = l'horloge, comme à l'étape 3
     var editMode by remember { mutableStateOf(initialEditMode) }
+    var swapFromId by remember { mutableStateOf<Int?>(null) } // case de départ d'un échange, ou null
 
     // --- les callbacks, passés vers le bas ---
+    fun onTileClick(id: Int) {
+        val from = swapFromId
+        when {
+            from == null -> activeId = id                    // cas normal : on sélectionne
+            id == from -> swapFromId = null                  // retoucher la case de départ : annule
+            else -> {                                        // une autre case : on échange
+                tree = swapLeaves(tree, from, id)
+                swapFromId = null
+                // activeId ne change pas : la case active (= celle de départ) a juste changé de place
+            }
+        }
+    }
+
     fun onSplit(direction: Direction) {
+        swapFromId = null
         val splitId = nextId(tree)
         val newLeafId = splitId + 1
         tree = splitLeaf(tree, activeId, direction, splitId, newLeafId)
@@ -44,14 +61,25 @@ fun HomeScreen(initialEditMode: Boolean = false) {
 
     fun onClose() {
         if (leafCount(tree) <= 1) return
+        swapFromId = null
         // la voisine qui prend la place devient active (sa première case si c'est une découpe)
         val sibling = siblingOf(tree, activeId)
         tree = closeLeaf(tree, activeId)
         activeId = if (sibling != null) firstLeafId(sibling) else firstLeafId(tree)
     }
 
+    fun onSwap() {
+        // 1er appui : la case active devient le départ ; 2e appui : annule
+        swapFromId = if (swapFromId == null) activeId else null
+    }
+
+    fun exitEditMode() {
+        editMode = false
+        swapFromId = null
+    }
+
     // Actif seulement en mode édition : il passe alors devant celui de MainActivity.
-    BackHandler(enabled = editMode) { editMode = false }
+    BackHandler(enabled = editMode) { exitEditMode() }
 
     Column(
         modifier = Modifier
@@ -62,21 +90,29 @@ fun HomeScreen(initialEditMode: Boolean = false) {
         TilingLayout(
             tree = tree,
             activeId = activeId,
-            onTileClick = { id -> activeId = id },
+            editMode = editMode,
+            swapFromId = swapFromId,
+            onTileClick = { id -> onTileClick(id) },
             onTileLongClick = { id ->
+                swapFromId = null
                 activeId = id
                 editMode = true
             },
+            // On applique le delta à l'arbre ACTUEL (jamais à un vieux ratio gardé par la poignée).
+            onResize = { splitId, delta -> tree = resize(tree, splitId, delta) },
             modifier = Modifier.fillMaxWidth().weight(1f),
         )
         if (editMode) {
             Spacer(Modifier.height(LauncherStyle.gap))
             EditBar(
                 canClose = leafCount(tree) > 1,
+                canSwap = leafCount(tree) > 1,
+                swapPending = swapFromId != null,
                 onSplitRow = { onSplit(Direction.ROW) },
                 onSplitColumn = { onSplit(Direction.COLUMN) },
                 onClose = { onClose() },
-                onOk = { editMode = false },
+                onSwap = { onSwap() },
+                onOk = { exitEditMode() },
             )
         }
     }

@@ -14,6 +14,7 @@ import androidx.compose.ui.draw.clip
 /**
  * Une case réutilisable : fond sombre arrondi, contour (accent si [active]) et contenu libre.
  * [onClick] = toucher court, [onLongClick] = appui long.
+ * [swapSource] = case de départ d'un échange en attente : contour d'une autre couleur.
  */
 @Composable
 fun Tile(
@@ -21,6 +22,7 @@ fun Tile(
     onClick: () -> Unit,
     onLongClick: () -> Unit,
     modifier: Modifier = Modifier,
+    swapSource: Boolean = false,
     content: @Composable BoxScope.() -> Unit,
 ) {
     val shape = RoundedCornerShape(LauncherStyle.cornerRadius)
@@ -32,7 +34,11 @@ fun Tile(
             .background(LauncherStyle.tileBackground, shape)
             .border(
                 width = LauncherStyle.borderWidth,
-                color = if (active) LauncherStyle.borderActive else LauncherStyle.borderInactive,
+                color = when {
+                    swapSource -> LauncherStyle.borderSwap
+                    active -> LauncherStyle.borderActive
+                    else -> LauncherStyle.borderInactive
+                },
                 shape = shape,
             )
             .combinedClickable(onClick = onClick, onLongClick = onLongClick)
