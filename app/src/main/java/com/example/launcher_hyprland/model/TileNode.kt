@@ -6,8 +6,11 @@ package com.example.launcher_hyprland.model
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
-/** Ce qu'affiche une case. */
-enum class WidgetType { CLOCK, AGENDA, NOTES, EMPTY }
+/**
+ * Ce qu'affiche une case. Sauvegardé par NOM dans le JSON de la disposition :
+ * on peut AJOUTER des valeurs, jamais en renommer ni en supprimer (l'ancien JSON deviendrait illisible).
+ */
+enum class WidgetType { CLOCK, AGENDA, NOTES, EMPTY, BATTERY }
 
 /** Sens de la découpe d'un [TileNode.Split]. */
 enum class Direction {

@@ -111,6 +111,15 @@ private fun replaceLeaves(node: TileNode, a: TileNode.Leaf, b: TileNode.Leaf): T
     )
 }
 
+/** Change le widget affiché par la feuille [leafId]. Les autres nœuds (et l'id de la feuille) ne bougent pas. */
+fun setWidget(node: TileNode, leafId: Int, widget: WidgetType): TileNode = when (node) {
+    is TileNode.Leaf -> if (node.id == leafId) node.copy(widget = widget) else node
+    is TileNode.Split -> node.copy(
+        first = setWidget(node.first, leafId, widget),
+        second = setWidget(node.second, leafId, widget),
+    )
+}
+
 /** Bornes du ratio d'une découpe : aucune case ne peut descendre sous 15 % de sa zone. */
 const val MIN_RATIO = 0.15f
 const val MAX_RATIO = 0.85f

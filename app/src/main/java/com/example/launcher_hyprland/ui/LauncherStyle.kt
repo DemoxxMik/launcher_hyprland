@@ -3,6 +3,7 @@ package com.example.launcher_hyprland.ui
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
 /** Toutes les valeurs du design au même endroit : on règle l'apparence ici, et seulement ici. */
 object LauncherStyle {
@@ -26,4 +27,10 @@ object LauncherStyle {
 
     // Police
     val font = FontFamily.Monospace
+
+    // Tailles de texte : les widgets n'écrivent jamais de `.sp` eux-mêmes, ils prennent l'une de celles-ci.
+    val textHuge = 64.sp   // l'heure de l'horloge, le % de la batterie
+    val textBody = 16.sp   // texte normal
+    val textSmall = 12.sp  // étiquettes (« agenda », « notes »…)
+    val lineSpacing = 8.dp // écart vertical entre deux lignes d'un widget
 }

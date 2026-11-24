@@ -11,18 +11,19 @@ Légende : `[x]` fait · `[ ]` à faire
 - [x] Lancer « Hello Android » sur le Pixel 9a
 - [x] Créer le dépôt GitHub
 
-## 2. Devenir un launcher
-- [ ] Manifeste : ajouter les catégories `HOME` + `DEFAULT` à `MainActivity`
-- [ ] `launchMode="singleTask"` : une seule instance de l'écran d'accueil
-- [ ] Choisir l'app comme launcher par défaut (Paramètres › Applis › Applis par défaut › Appli d'écran d'accueil)
-- [ ] Bouton retour : ne rien faire sur l'écran d'accueil (`BackHandler`)
-- [ ] Afficher le fond d'écran du système derrière l'interface (`windowShowWallpaper`)
-- [ ] Plan de secours testé : revenir au Pixel Launcher (voir en bas)
+## 2. Devenir un launcher ✅
+- [x] Manifeste : ajouter les catégories `HOME` + `DEFAULT` à `MainActivity`
+- [x] `launchMode="singleTask"` : une seule instance de l'écran d'accueil
+- [x] Choisir l'app comme launcher par défaut (Paramètres › Applis › Applis par défaut › Appli d'écran d'accueil)
+- [x] Bouton retour : ne rien faire sur l'écran d'accueil (`BackHandler`)
+- [x] Afficher le fond d'écran du système derrière l'interface (`windowShowWallpaper`)
+- [x] Plan de secours testé : revenir au Pixel Launcher (voir en bas)
 
-## 3. Grille statique de 3 cases
-- [ ] 3 zones fixes (une grande à gauche, deux empilées à droite)
-- [ ] Un widget factice par case
-- [ ] Espacements (« gaps ») façon Hyprland
+## 3. Grille statique de 3 cases ✅
+- [x] 3 zones fixes : horloge en haut, agenda + notes côte à côte dessous
+- [x] Un widget factice par case (monospace)
+- [x] Espacements (« gaps ») façon Hyprland, cases sombres arrondies
+- [x] Case active au toucher (contour couleur d'accent)
 
 ## 4. Tiling dynamique (BSP)
 - [ ] Modèle : arbre binaire (nœud = découpe H/V + ratio, feuille = widget)
@@ -33,11 +34,18 @@ Légende : `[x]` fait · `[ ]` à faire
 - [ ] Sauvegarder la disposition (DataStore)
 
 ## 5. Premiers vrais widgets maison
-- [ ] Horloge, batterie, notes, raccourcis
-- [ ] Météo, musique
+- [ ] 5a : choisir le widget d'une case + vraie horloge/date (s'arrête quand l'accueil est caché)
+- [ ] 5b : batterie (niveau + charge)
+- [ ] 5c : notes (éditeur plein écran, sauvegardées par case)
+- [ ] 5d : agenda (permission calendrier)
+- Reporté : apps favorites (étape 6), météo et musique (étape 6b, via les widgets Android, ou maison plus tard)
 
 ## 6. Liste et recherche d'apps
 - [ ] Lister les apps (`LauncherApps`), rechercher, lancer
+
+## 6b. Widgets Android dans les cases (AppWidgetHost)
+- [ ] Une case peut afficher un widget d'une autre app (météo, Google Agenda, Spotify…)
+- [ ] Choisir le widget, autorisation système, configuration, garder son id dans l'arbre
 
 ## 7. Gestes, animations, thème
 - [ ] Gestes, animations, thème, effets AGSL (shaders)

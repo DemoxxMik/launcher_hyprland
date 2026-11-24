@@ -29,6 +29,7 @@ import com.example.launcher_hyprland.model.firstLeafId
 import com.example.launcher_hyprland.model.leafCount
 import com.example.launcher_hyprland.model.nextId
 import com.example.launcher_hyprland.model.resize
+import com.example.launcher_hyprland.model.setWidget
 import com.example.launcher_hyprland.model.siblingOf
 import com.example.launcher_hyprland.model.splitLeaf
 import com.example.launcher_hyprland.model.swapLeaves
@@ -43,6 +44,7 @@ fun HomeScreen(initialEditMode: Boolean = false) {
     var activeId by remember { mutableIntStateOf(2) } // 2 = l'horloge, comme à l'étape 3
     var editMode by remember { mutableStateOf(initialEditMode) }
     var swapFromId by remember { mutableStateOf<Int?>(null) } // case de départ d'un échange, ou null
+    var pickerOpen by remember { mutableStateOf(false) }      // la liste des widgets remplace l'EditBar
 
     // --- sauvegarde (pas dans l'aperçu d'Android Studio : il n'a pas de vrai stockage) ---
     val context = LocalContext.current
@@ -106,10 +108,14 @@ fun HomeScreen(initialEditMode: Boolean = false) {
     fun exitEditMode() {
         editMode = false
         swapFromId = null
+        pickerOpen = false
     }
 
     // Actif seulement en mode édition : il passe alors devant celui de MainActivity.
-    BackHandler(enabled = editMode) { exitEditMode() }
+    // Si la liste des widgets est ouverte, retour la ferme d'abord (on reste en mode édition).
+    BackHandler(enabled = editMode) {
+        if (pickerOpen) pickerOpen = false else exitEditMode()
+    }
 
     // Tant que la sauvegarde n'est pas relue (quelques ms), on n'affiche rien : sinon on verrait
     // l'arbre par défaut clignoter avant d'être remplacé par le tien.
@@ -136,7 +142,17 @@ fun HomeScreen(initialEditMode: Boolean = false) {
             onResize = { splitId, delta -> tree = resize(tree, splitId, delta) },
             modifier = Modifier.fillMaxWidth().weight(1f),
         )
-        if (editMode) {
+        if (editMode && pickerOpen) {
+            Spacer(Modifier.height(LauncherStyle.gap))
+            WidgetPicker(
+                current = findLeaf(tree, activeId)?.widget,
+                onPick = { type ->
+                    tree = setWidget(tree, activeId, type) // nouvel arbre → redessin + sauvegarde (debounce)
+                    pickerOpen = false
+                },
+                onCancel = { pickerOpen = false },
+            )
+        } else if (editMode) {
             Spacer(Modifier.height(LauncherStyle.gap))
             EditBar(
                 canClose = leafCount(tree) > 1,
@@ -146,6 +162,10 @@ fun HomeScreen(initialEditMode: Boolean = false) {
                 onSplitColumn = { onSplit(Direction.COLUMN) },
                 onClose = { onClose() },
                 onSwap = { onSwap() },
+                onWidget = {
+                    swapFromId = null
+                    pickerOpen = true
+                },
                 onOk = { exitEditMode() },
             )
         }

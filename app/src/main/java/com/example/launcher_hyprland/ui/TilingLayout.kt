@@ -26,6 +26,7 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import com.example.launcher_hyprland.model.Direction
 import com.example.launcher_hyprland.model.TileNode
+import com.example.launcher_hyprland.ui.widgets.WidgetContent
 
 /**
  * Dessine tout l'arbre [tree]. Ne modifie rien : il reçoit l'état ([activeId], [editMode],
@@ -76,7 +77,7 @@ private fun NodeView(
                 onLongClick = { onTileLongClick(node.id) },
                 modifier = modifier,
             ) {
-                WidgetContent(node.widget)
+                WidgetContent(node.widget, leafId = node.id, active = node.id == activeId)
             }
         }
 

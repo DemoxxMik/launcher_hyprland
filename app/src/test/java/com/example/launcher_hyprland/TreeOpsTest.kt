@@ -11,6 +11,7 @@ import com.example.launcher_hyprland.model.MAX_RATIO
 import com.example.launcher_hyprland.model.MIN_RATIO
 import com.example.launcher_hyprland.model.nextId
 import com.example.launcher_hyprland.model.resize
+import com.example.launcher_hyprland.model.setWidget
 import com.example.launcher_hyprland.model.splitLeaf
 import com.example.launcher_hyprland.model.swapLeaves
 import kotlinx.serialization.json.Json
@@ -127,6 +128,27 @@ class TreeOpsTest {
         val text = Json.encodeToString(tree)
         assertTrue(text.contains("\"type\":\"split\"")) // le champ "type" ajouté pour le sealed interface
         assertEquals(tree, Json.decodeFromString<TileNode>(text))
+    }
+
+    @Test
+    fun setWidget_changesOnlyTheTargetLeaf() {
+        val tree = setWidget(defaultTree(), leafId = 4, WidgetType.BATTERY)
+        val expected = TileNode.Split(
+            1, Direction.COLUMN, 0.33f,
+            TileNode.Leaf(2, WidgetType.CLOCK),
+            TileNode.Split(
+                3, Direction.ROW, 0.5f,
+                TileNode.Leaf(4, WidgetType.BATTERY), // même id, nouveau widget
+                TileNode.Leaf(5, WidgetType.NOTES),
+            ),
+        )
+        assertEquals(expected, tree)
+    }
+
+    @Test
+    fun setWidget_unknownOrSplitId_doesNothing() {
+        assertEquals(defaultTree(), setWidget(defaultTree(), leafId = 99, WidgetType.EMPTY))
+        assertEquals(defaultTree(), setWidget(defaultTree(), leafId = 3, WidgetType.EMPTY))
     }
 
     @Test
