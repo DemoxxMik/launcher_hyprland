@@ -2,6 +2,7 @@ package com.example.launcher_hyprland.ui
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -10,9 +11,9 @@ object LauncherStyle {
     // Dimensions
     val gap = 10.dp            // écart entre les cases et avec les bords de l'écran
     val editGap = 24.dp        // écart en mode édition : assez large pour attraper la poignée au doigt
-    val cornerRadius = 12.dp   // rayon des coins d'une case
-    val borderWidth = 2.dp     // épaisseur du contour
-    val tilePadding = 16.dp    // marge intérieure d'une case
+    val cornerRadius = 8.dp   // rayon des coins d'une case
+    val borderWidth = 1.dp     // épaisseur du contour
+    val tilePadding = 12.dp    // marge intérieure d'une case
     val handleLength = 32.dp   // longueur du petit trait visible au milieu d'une poignée
     val handleThickness = 4.dp // épaisseur de ce trait
 
@@ -78,12 +79,13 @@ object LauncherStyle {
     val fallbackField = Color(0xFF313244)
     val fallbackOnAccent = Color(0xFF1E1E2E)
 
-    // Police
+    // Police : pas de JetBrains Mono dans res/font/ -> monospace systeme (a embarquer plus tard)
     val font = FontFamily.Monospace
+    val weightHuge = FontWeight.Light // l'heure : ~44 sp Light
 
     // Tailles de texte : les widgets n'écrivent jamais de `.sp` eux-mêmes, ils prennent l'une de celles-ci.
-    val textHuge = 64.sp   // l'heure de l'horloge, le % de la batterie
-    val textBody = 16.sp   // texte normal
-    val textSmall = 12.sp  // étiquettes (« agenda », « notes »…)
+    val textHuge = 44.sp   // l'heure de l'horloge, le % de la batterie
+    val textBody = 13.sp   // texte normal
+    val textSmall = 11.sp  // étiquettes (« agenda », « notes »…)
     val lineSpacing = 8.dp // écart vertical entre deux lignes d'un widget
 }
